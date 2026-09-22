@@ -190,6 +190,70 @@ CURATED_SITES = [
         "region": "Aviano (PN)",
         "access": "SP31 veloce da Aviano. Parcheggio dorsale Castaldia a 1470m. Raggiungibile in ~56m! SQM ~21.08 (buono verso nord, ma disturbo della pianura verso sud).",
         "paved": True
+    },
+    {
+        "name": "Cansiglio (Pian Osteria)",
+        "lat": 46.0694,
+        "lon": 12.4042,
+        "region": "Alpago / Tambre (BL)",
+        "access": "SP422 veloce da Caneva o Vittorio Veneto. Ampio pianoro dell'altopiano del Cansiglio a 1000m, parcheggi in piano. Raggiungibile in soli ~50m da Ghirano! SQM ~21.04.",
+        "paved": True
+    },
+    {
+        "name": "Pala Barzana",
+        "lat": 46.2333,
+        "lon": 12.7333,
+        "region": "Andreis / Poffabro (PN)",
+        "access": "SP26 della Pala Barzana. Valico a 640m-840m tra Valcellina e Val Colvera. Zona appartata a ~60m da Ghirano. SQM ~21.25.",
+        "paved": True
+    },
+    {
+        "name": "Alpe del Nevegal (Piazzale)",
+        "lat": 46.0917,
+        "lon": 12.2833,
+        "region": "Belluno (BL)",
+        "access": "SP31 comoda da Belluno/Cadola. Grandi piazzali asfaltati a 1080m con vista aperta a nord sulle Dolomiti Bellunesi. Raggiungibile in ~1h 02m. SQM ~21.03.",
+        "paved": True
+    },
+    {
+        "name": "Passo San Boldo",
+        "lat": 46.0078,
+        "lon": 12.1706,
+        "region": "Cison di Valmarino / Trichiana (TV/BL)",
+        "access": "SP635 dei 100 giorni. Parcheggi al valico a 706m. Raggiungibile in ~55m. SQM ~20.75.",
+        "paved": True
+    },
+    {
+        "name": "Monte Cesen (Malga Mariech)",
+        "lat": 45.9292,
+        "lon": 12.0167,
+        "region": "Valdobbiadene (TV)",
+        "access": "Strada panoramica asfaltata fino alla sommità del Monte Cesen / Malga Mariech a 1500m. Grande piazzale con orizzonte aperto. Raggiungibile in ~1h 15m. SQM ~20.85.",
+        "paved": True
+    },
+    {
+        "name": "Cima Grappa (Rifugio Bassano)",
+        "lat": 45.8722,
+        "lon": 11.8028,
+        "region": "Monte Grappa (TV/VI/BL)",
+        "access": "SP140 Strada Cadorna. Vasto piazzale asfaltato a quasi 1800m. Quota elevata sopra le nebbie della pianura. Raggiungibile in ~1h 30m. SQM ~20.90.",
+        "paved": True
+    },
+    {
+        "name": "Sella Chianzutan",
+        "lat": 46.3750,
+        "lon": 12.9667,
+        "region": "Verzegnis (UD)",
+        "access": "SP1 comoda e asfaltata tra Tolmezzo e la Val d'Arzino. Piazzale al valico a 955m. Raggiungibile in ~1h 38m. SQM ~21.37.",
+        "paved": True
+    },
+    {
+        "name": "Val Canzoi (Lago della Stua)",
+        "lat": 46.1550,
+        "lon": 11.9750,
+        "region": "Cesiomaggiore / Dolomiti Bellunesi (BL)",
+        "access": "Strada asfaltata fino al parcheggio della Val Canzoi (Parco Nazionale Dolomiti Bellunesi). Valle stretta e riparata. SQM ~21.37 in ~1h 46m.",
+        "paved": True
     }
 ]
 
@@ -360,7 +424,7 @@ def query_driving_route(origin_lat: float, origin_lon: float, dest_lat: float, d
     }
 
 
-def evaluate_all_sites(origin: Optional[Dict] = None, min_sqm: float = 21.0) -> List[Dict]:
+def evaluate_all_sites(origin: Optional[Dict] = None, min_sqm: float = 20.0) -> List[Dict]:
     """
     Valuta l'intero catalogo di siti rispetto al punto di origine e alla soglia SQM.
     """
@@ -495,10 +559,13 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
             font-weight: bold;
             margin-right: 5px;
         }}
-        .badge-sqm-high {{ background: #059669; color: #fff; }}
+        .badge-sqm-dark {{ background: #047857; color: #fff; }}
+        .badge-sqm-high {{ background: #10b981; color: #fff; }}
         .badge-sqm-mid {{ background: #2563eb; color: #fff; }}
+        .badge-sqm-violet {{ background: #7c3aed; color: #fff; }}
+        .badge-sqm-amber {{ background: #d97706; color: #fff; }}
         .badge-time {{ background: #4b5563; color: #e5e7eb; }}
-        .badge-alt {{ background: #7c3aed; color: #fff; }}
+        .badge-alt {{ background: #4f46e5; color: #fff; }}
         .site-title {{
             font-size: 0.95rem;
             font-weight: 600;
@@ -545,7 +612,7 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
 <body>
     <div id="header">
         <div>
-            <h1>Siti di Osservazione Astronomica (SQM &gt; 21.7 &amp; Tempi Auto)</h1>
+            <h1>Siti di Osservazione Astronomica (SQM &gt; 20.0 &amp; Tempi Auto)</h1>
             <div class="subtitle">Partenza da Ghirano di Prata (PN) • Tempi reali stradali OSRM • Dati fotometrici LightPollutionMap</div>
         </div>
         <div style="font-size: 0.85rem; color: #10b981; font-weight: 600;">
@@ -609,16 +676,26 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
         const routeLayers = [];
 
         function getMarkerColor(sqm) {{
-            if (sqm >= 21.75) return '#059669'; // Verde scuro top dark
+            if (sqm >= 21.75) return '#047857'; // Verde scuro top dark
             if (sqm >= 21.70) return '#10b981'; // Verde smeraldo
-            if (sqm >= 21.60) return '#3b82f6'; // Blu
-            return '#8b5cf6'; // Viola
+            if (sqm >= 21.50) return '#2563eb'; // Blu
+            if (sqm >= 21.00) return '#7c3aed'; // Viola
+            return '#d97706'; // Ambra / Arancio per SQM 20.0 - 20.99
+        }}
+
+        function getSqmBadgeClass(sqm) {{
+            if (sqm >= 21.75) return 'badge-sqm-dark';
+            if (sqm >= 21.70) return 'badge-sqm-high';
+            if (sqm >= 21.50) return 'badge-sqm-mid';
+            if (sqm >= 21.00) return 'badge-sqm-violet';
+            return 'badge-sqm-amber';
         }}
 
         const cardsContainer = document.getElementById('cards-list');
 
         sites.forEach((site, idx) => {{
             const color = getMarkerColor(site.sqm_2025);
+            const badgeClass = getSqmBadgeClass(site.sqm_2025);
             
             // Marker mappa
             const icon = L.divIcon({{
@@ -636,7 +713,7 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
                     <h3 style="margin: 0 0 4px 0; color: #60a5fa; font-size: 1rem;">${{idx + 1}}. ${{site.name}}</h3>
                     <div style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 8px;">${{site.region}}</div>
                     <div style="margin-bottom: 6px;">
-                        <span class="badge badge-sqm-high">SQM ${{site.sqm_2025}}</span>
+                        <span class="badge ${{badgeClass}}">SQM ${{site.sqm_2025}}</span>
                         <span class="badge badge-time">🚗 ${{site.duration_str}} (${{site.distance_km}} km)</span>
                     </div>
                     <div style="font-size: 0.8rem; margin-bottom: 4px;"><b>Quota:</b> ${{site.elevation_m}} m s.l.m.</div>
@@ -666,7 +743,7 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
                 <div class="site-title">${{idx + 1}}. ${{site.name}}</div>
                 <div class="site-region">${{site.region}}</div>
                 <div style="margin-bottom: 6px;">
-                    <span class="badge badge-sqm-high">SQM ${{site.sqm_2025}}</span>
+                    <span class="badge ${{badgeClass}}">SQM ${{site.sqm_2025}}</span>
                     <span class="badge badge-time">🚗 ${{site.duration_str}}</span>
                     <span class="badge badge-alt">🏔️ ${{site.elevation_m}}m</span>
                 </div>
@@ -694,5 +771,5 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
 
 
 if __name__ == "__main__":
-    results = evaluate_all_sites(min_sqm=21.0)
+    results = evaluate_all_sites(min_sqm=20.0)
     export_interactive_html(results, DEFAULT_ORIGIN, "d:/ProgettiVari/SqmSearch/sqm_dark_sites_map.html")

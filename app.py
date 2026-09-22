@@ -98,7 +98,7 @@ with st.sidebar.expander("🛠️ Modifica coordinate a mano"):
             st.rerun()
 
 st.sidebar.header("🎯 Filtri Siti")
-min_sqm = st.sidebar.slider("Soglia Minima SQM (mag/arcsec²)", min_value=21.0, max_value=22.0, value=21.5, step=0.05)
+min_sqm = st.sidebar.slider("Soglia Minima SQM (mag/arcsec²)", min_value=19.5, max_value=22.0, value=20.5, step=0.05)
 max_drive_hours = st.sidebar.slider("Tempo Max Guida (ore)", min_value=1.0, max_value=3.5, value=2.5, step=0.25)
 only_paved = st.sidebar.checkbox("Solo strade completamente asfaltate", value=True)
 
@@ -107,7 +107,7 @@ tab_ranking, tab_test_point, tab_map_view = st.tabs(["🏆 Classifica Siti Bui",
 
 @st.cache_data(ttl=3600)
 def get_sites_data(lat, lon, origin_label):
-    return evaluate_all_sites(origin={"name": origin_label, "lat": lat, "lon": lon}, min_sqm=20.5)
+    return evaluate_all_sites(origin={"name": origin_label, "lat": lat, "lon": lon}, min_sqm=19.5)
 
 sites_data = get_sites_data(st.session_state.origin_lat, st.session_state.origin_lon, st.session_state.origin_name)
 
