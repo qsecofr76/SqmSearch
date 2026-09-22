@@ -12,7 +12,9 @@ from sqm_analyzer import (
     query_driving_route,
     calculate_routes_for_origin,
     evaluate_all_sites,
-    search_locations
+    search_locations,
+    list_available_catalogs,
+    load_catalog
 )
 
 st.set_page_config(
@@ -27,7 +29,7 @@ st.markdown(
     Questo strumento supera il limite della ricerca "in linea d'aria" di *LightPollutionMap*,
     valutando l'**effettiva raggiungibilità in auto** (tempi di percorrenza e distanze reali su strada)
     e i valori fotometrici **SQM / Bortle** aggiornati dai server di *LightPollutionMap.info*.  
-    Copertura estesa: **Triveneto** (Friuli-Venezia Giulia, Veneto, Trentino-Alto Adige), **Carinzia (Austria)**, **Slovenia Occidentale** e **Costa & Lagune**.
+    Catalogo attivo: **NordEst** (Friuli-Venezia Giulia, Veneto, Trentino-Alto Adige, Carinzia, Slovenia e Costa Adriatica).
     """
 )
 
@@ -41,11 +43,11 @@ if "origin_lon" not in st.session_state:
 
 # Inizializza session_state per il punto personalizzato di test
 if "test_lat" not in st.session_state:
-    st.session_state.test_lat = 46.4795
+    st.session_state.test_lat = 46.2314
 if "test_lon" not in st.session_state:
-    st.session_state.test_lon = 12.5855
+    st.session_state.test_lon = 12.8070
 if "test_name" not in st.session_state:
-    st.session_state.test_name = "Casera Razzo"
+    st.session_state.test_name = "Monte Valinis / Meduno Startplatz"
 
 # ----------------- SIDEBAR -----------------
 st.sidebar.header("📍 Punto di Partenza")
@@ -99,19 +101,30 @@ with st.sidebar.expander("🛠️ Modifica coordinate a mano"):
             st.session_state.origin_lon = manual_lon
             st.rerun()
 
+st.sidebar.header("📚 Catalogo Aree")
+available_catalogs = list_available_catalogs()
+selected_catalog_name = st.sidebar.selectbox(
+    "Catalogo attivo:",
+    options=list(available_catalogs.keys()),
+    index=0
+)
+cat_id = available_catalogs[selected_catalog_name]
+st.sidebar.caption("I cataloghi sono archiviati in `catalogs/*.json`. È possibile aggiungere facilmente nuove aree (es. Lombardia, Centro Italia).")
+
 # ----------------- CARICAMENTO DATI SITI (ISTANTANEO) -----------------
 @st.cache_data(ttl=3600)
-def get_sites_data(lat, lon, origin_label):
-    return calculate_routes_for_origin(lat, lon, origin_label)
+def get_sites_data(lat, lon, origin_label, catalog_id):
+    sites = load_catalog(catalog_id)
+    return calculate_routes_for_origin(lat, lon, origin_label, sites=sites)
 
-sites_data = get_sites_data(st.session_state.origin_lat, st.session_state.origin_lon, st.session_state.origin_name)
+sites_data = get_sites_data(st.session_state.origin_lat, st.session_state.origin_lon, st.session_state.origin_name, cat_id)
 
 # ----------------- TABS -----------------
 tab_ranking, tab_test_point, tab_map_view = st.tabs(["🏆 Classifica Siti Bui", "🔍 Testa un Punto Personalizzato", "🗺️ Mappa Interattiva"])
 
 with tab_ranking:
     st.subheader(f"📍 Tutti i Siti di Osservazione Ordinati per Tempo di Guida da {st.session_state.origin_name}")
-    st.write(f"Trovati **{len(sites_data)}** siti montani e costieri pronti per l'osservazione, ordinati dal più vicino al più lontano.")
+    st.write(f"Trovati **{len(sites_data)}** siti nel catalogo **{selected_catalog_name}**, ordinati dal più vicino al più lontano.")
     
     table_rows = []
     for idx, s in enumerate(sites_data, 1):
@@ -180,7 +193,7 @@ with tab_test_point:
     
     test_search = st.text_input(
         "🔎 Cerca località di destinazione per nome",
-        placeholder="Es. Passo Giau, Sauris, Piancavallo, Mangart, Emberger Alm...",
+        placeholder="Es. Meduno, Monte Pizzoc, Monte Avena, Passo Giau, Mangart...",
         key="test_search_input"
     )
     if test_search:
@@ -222,7 +235,7 @@ with tab_test_point:
 with tab_map_view:
     st.subheader("🗺️ Mappa Interattiva dei Siti")
     st.info("💡 **Clicca sulla mappa:** Clicca in **qualsiasi punto** per calcolare all'istante l'SQM e tracciare l'itinerario in auto con tempi e distanze da " + st.session_state.origin_name + "!")
-    st.write("La mappa include tutte le località montane e costiere di Triveneto, Carinzia e Slovenia Occidentale.")
+    st.write("La mappa include tutte le 85 località del catalogo NordEst (con Monte Valinis, Monte Pizzoc, Monte Avena, Sonnleitn e tutti i passi storici).")
     try:
         with open("sqm_dark_sites_map.html", "r", encoding="utf-8") as f:
             map_html = f.read()
