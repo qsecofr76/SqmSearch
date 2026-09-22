@@ -1,8 +1,11 @@
 # 🌌 SQM Search & Driving Reachability Explorer
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://sqmsearch-eucsrbmdvsdt5tmgwfxg99.streamlit.app/)
+
 Uno strumento interattivo open-source per individuare e valutare i **migliori siti di osservazione astronomica** incrociando la qualità del cielo buio (**SQM / Bortle**) con l'**effettiva raggiungibilità stradale in automobile** (tempi di guida e chilometri reali).
 
-Accessible sia da desktop sia da smartphone con interfaccia ottimizzata per il campo.
+🚀 **Applicazione Web Online:** [https://sqmsearch-eucsrbmdvsdt5tmgwfxg99.streamlit.app/](https://sqmsearch-eucsrbmdvsdt5tmgwfxg99.streamlit.app/)  
+Ottimizzata sia per l'uso da PC desktop che direttamente da smartphone sul campo.
 
 ---
 
@@ -20,24 +23,23 @@ I portali astronomici tradizionali e i visualizzatori di inquinamento luminoso o
 ## ✨ Funzionalità Principali
 
 * 📍 **Punto di Partenza Personalizzabile**:
+  * Caricamento istantaneo predefinito con ricalcolo immediato all'apertura.
   * Ricerca rapida per nome di qualsiasi città, comune o indirizzo (geocoding automatico con OpenStreetMap / Open-Meteo).
   * Inserimento manuale di latitudine e longitudine GPS.
 * 🚗 **Routing Stradale Reale con OSRM**:
   * Calcolo accurato di tempi di percorrenza e distanze chilometriche effettive su strada.
   * Navigazione assistita: pulsante diretto per aprire l'itinerario in **Google Maps** e avviare il navigatore in auto.
 * 🌌 **Analisi Fotometrica e Qualità del Cielo**:
-  * Interrogazione diretta dei raster di *LightPollutionMap.info* (*Sky Brightness 2025* e *World Atlas 2015*).
+  * Interrogazione dei raster di *LightPollutionMap.info* (*Sky Brightness 2025* e *World Atlas 2015*).
   * Valore **SQM** (Sky Quality Meter in mag/arcsec²), stima della **Classe Bortle**, **NELM** (Naked Eye Limiting Magnitude) e quota sul livello del mare.
 * 🗺️ **Mappa Interattiva Leaflet con Click-to-Inspect**:
   * Cliccando su **qualsiasi punto della mappa** viene interrogato all'istante il database fotometrico e tracciato l'itinerario in tempo reale dal punto di partenza selezionato.
   * Selettore di layer cartografici 100% gratuiti: **Stradale (OpenStreetMap)**, **Rilievo Montano (Esri Topo)** e **Satellite (Esri Imagery)**.
-* 🎯 **Filtri Dinamici**:
-  * Soglia minima di SQM desiderata.
-  * Tempo massimo di guida accettabile (fino a 5 ore).
-  * Filtro per sole strade asfaltate.
-  * Filtro per area geografica / macro-regione.
+* 📋 **Classifica Ordinata per Tempo di Guida**:
+  * Visualizzazione immediata di tutti gli 81 siti del catalogo ordinati dal più vicino al più lontano in auto.
+  * Righe colorate ad alto contrasto (testo nero su sfumature pastello) in base alla qualità del cielo (SQM).
 * 🔍 **Modalità Test Libero**:
-  * Possibilità di testare qualsiasi coordinate o toponimo nel mondo per verificarne istantaneamente SQM e itinerario stradale.
+  * Possibilità di testare qualsiasi coordinata o toponimo nel mondo per verificarne istantaneamente SQM e itinerario stradale.
 
 ---
 
@@ -55,11 +57,12 @@ Il database include oltre **80 siti con accesso veicolare verificato e aree di s
 
 ## 🚀 Utilizzo
 
-### Online su Streamlit Cloud
-L'applicazione è fruibile direttamente da browser web (desktop o cellulare) senza necessità di installare software:
-👉 **[Apri l'applicazione su Streamlit](https://share.streamlit.io)** *(accedi con il link della tua app distribuita)*
+### 📱 Online su Streamlit Cloud (Nessuna installazione richiesta)
+L'applicazione è attiva e fruibile direttamente da browser:
 
-### Esecuzione in Locale
+👉 **[Apri SQM Search su Streamlit Cloud](https://sqmsearch-eucsrbmdvsdt5tmgwfxg99.streamlit.app/)**
+
+### 💻 Esecuzione in Locale
 ```bash
 # 1. Clona il repository
 git clone https://github.com/qsecofr76/SqmSearch.git
@@ -86,7 +89,7 @@ streamlit run app.py
 ```
 SqmSearch/
 ├── app.py                      # Applicazione web interattiva Streamlit
-├── sqm_analyzer.py             # Modulo di calcolo: API LightPollutionMap, OSRM e ThreadPoolExecutor
+├── sqm_analyzer.py             # Modulo di calcolo: API LightPollutionMap, OSRM Table Service
 ├── sqm_dark_sites_map.html     # Mappa interattiva Leaflet standalone
 ├── requirements.txt            # Dipendenze Python (streamlit, pandas, requests)
 ├── avvia_sqm_search.bat        # Script di avvio rapido locale (Windows)
@@ -98,7 +101,7 @@ SqmSearch/
 
 ## 🛠️ Tecnologie Utilizzate
 
-* **Python 3** con esecuzione concorrente multithread (`concurrent.futures`).
+* **Python 3** con calcolo batch ultra-veloce (`OSRM Table Service`).
 * **Streamlit** per l'interfaccia utente web reattiva e compatibile con dispositivi mobili.
 * **Leaflet.js** per la cartografia interattiva e il calcolo dinamico al click.
 * **OSRM (Open Source Routing Machine)** per il calcolo stradale e le geometrie dei percorsi.
