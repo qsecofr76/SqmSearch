@@ -20,7 +20,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🌌 Ricerca Siti Astronomici Buoi (SQM & Tempi Auto)")
+st.title("🌌 Ricerca Siti Astronomici Bui (SQM & Tempi Auto)")
 st.markdown(
     """
     Questo strumento supera il limite della ricerca "in linea d'aria" di *LightPollutionMap*,
@@ -103,7 +103,7 @@ max_drive_hours = st.sidebar.slider("Tempo Max Guida (ore)", min_value=1.0, max_
 only_paved = st.sidebar.checkbox("Solo strade completamente asfaltate", value=True)
 
 # ----------------- TABS -----------------
-tab_ranking, tab_test_point, tab_map_view = st.tabs(["🏆 Classifica Siti Buoi", "🔍 Testa un Punto Personalizzato", "🗺️ Mappa Interattiva"])
+tab_ranking, tab_test_point, tab_map_view = st.tabs(["🏆 Classifica Siti Bui", "🔍 Testa un Punto Personalizzato", "🗺️ Mappa Interattiva"])
 
 @st.cache_data(ttl=3600)
 def get_sites_data(lat, lon, origin_label):

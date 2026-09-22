@@ -1,5 +1,5 @@
 @echo off
-title SQM Search - Siti Astronomici Buoi da Ghirano
+title SQM Search - Siti Astronomici Bui da Ghirano
 color 0b
 
 :: Spostati nella cartella dello script
