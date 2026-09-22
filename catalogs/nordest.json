@@ -1429,19 +1429,19 @@
   },
   {
     "name": "Sonnleitn (Nassfeld / Alpi Carniche)",
-    "lat": 46.5705,
-    "lon": 13.2955,
+    "lat": 46.5848,
+    "lon": 13.259,
     "macro_region": "Carinzia (Austria)",
     "region": "Hermagor / Nassfeld (Kärnten - AT)",
-    "access": "Strada alpina asfaltata subito oltre il valico di Passo Pramollo verso il villaggio alpino di Sonnleitn a oltre 1750m. Altissima quota, circondato dai monti delle Carniche austriache, buio stellare profondo. SQM ~21.77!",
+    "access": "Strada alpina asfaltata da Passo Pramollo o Hermagor verso il villaggio alpino di Sonnleitn a quasi 1400m. Circondato dai monti delle Carniche austriache, buio stellare profondo. SQM ~21.78!",
     "paved": true,
-    "sqm_2025": 21.77,
-    "elevation_m": 1771,
+    "sqm_2025": 21.78,
+    "elevation_m": 1381,
     "bortle": "Classe 3 (Cielo rurale)",
     "nelm": 6.52,
-    "duration_min": 134,
-    "distance_km": 184.0,
-    "duration_str": "2h 14m",
-    "gmaps_url": "https://www.google.com/maps/dir/?api=1&origin=45.8617,12.5539&destination=46.5705,13.2955&travelmode=driving"
+    "duration_min": 131,
+    "distance_km": 186.1,
+    "duration_str": "2h 11m",
+    "gmaps_url": "https://maps.app.goo.gl/vvS98yxfqL8ogCBJ8"
   }
 ]
