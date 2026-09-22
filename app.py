@@ -10,7 +10,8 @@ from sqm_analyzer import (
     generate_lpm_token,
     query_lpm_point,
     query_driving_route,
-    evaluate_all_sites
+    evaluate_all_sites,
+    search_locations
 )
 
 st.set_page_config(
@@ -28,26 +29,87 @@ st.markdown(
     """
 )
 
-# Sidebar: Parametri di ricerca
-st.sidebar.header("⚙️ Impostazioni di Partenza")
-origin_name = st.sidebar.text_input("Punto di partenza", value=DEFAULT_ORIGIN["name"])
-origin_lat = st.sidebar.number_input("Latitudine partenza", value=DEFAULT_ORIGIN["lat"], format="%.4f")
-origin_lon = st.sidebar.number_input("Longitudine partenza", value=DEFAULT_ORIGIN["lon"], format="%.4f")
-current_origin = {"name": origin_name, "lat": origin_lat, "lon": origin_lon}
+# Inizializza session_state per il punto di partenza
+if "origin_name" not in st.session_state:
+    st.session_state.origin_name = DEFAULT_ORIGIN["name"]
+if "origin_lat" not in st.session_state:
+    st.session_state.origin_lat = DEFAULT_ORIGIN["lat"]
+if "origin_lon" not in st.session_state:
+    st.session_state.origin_lon = DEFAULT_ORIGIN["lon"]
+
+# Inizializza session_state per il punto personalizzato di test
+if "test_lat" not in st.session_state:
+    st.session_state.test_lat = 46.4795
+if "test_lon" not in st.session_state:
+    st.session_state.test_lon = 12.5855
+if "test_name" not in st.session_state:
+    st.session_state.test_name = "Casera Razzo"
+
+# ----------------- SIDEBAR -----------------
+st.sidebar.header("📍 Punto di Partenza")
+
+# Barra di ricerca automatica della località di partenza
+search_query = st.sidebar.text_input(
+    "🔍 Cerca Città o Comune di partenza",
+    placeholder="Es. Ghirano, Pordenone, Treviso...",
+    key="origin_search_input"
+)
+
+if search_query:
+    with st.sidebar:
+        with st.spinner("Ricerca in corso..."):
+            found = search_locations(search_query)
+            if found:
+                options = {f"📍 {p['name']}": p for p in found}
+                selected_label = st.selectbox(
+                    "Seleziona tra i risultati:",
+                    options=list(options.keys()),
+                    key="origin_select_box"
+                )
+                if st.button("✅ Imposta questa partenza", width="stretch"):
+                    chosen = options[selected_label]
+                    st.session_state.origin_name = chosen["name"]
+                    st.session_state.origin_lat = chosen["lat"]
+                    st.session_state.origin_lon = chosen["lon"]
+                    st.rerun()
+            else:
+                st.caption("⚠️ Nessuna località trovata. Prova a specificare il comune o la provincia.")
+
+st.sidebar.markdown(f"**Partenza attiva:**  \n📍 `{st.session_state.origin_name}`")
+st.sidebar.caption(f"Coordinate: `{st.session_state.origin_lat:.4f}, {st.session_state.origin_lon:.4f}`")
+
+# Pulsante di ripristino rapido a Ghirano se diverso
+if st.session_state.origin_name != DEFAULT_ORIGIN["name"]:
+    if st.sidebar.button("🔄 Ripristina Ghirano di Prata", width="stretch"):
+        st.session_state.origin_name = DEFAULT_ORIGIN["name"]
+        st.session_state.origin_lat = DEFAULT_ORIGIN["lat"]
+        st.session_state.origin_lon = DEFAULT_ORIGIN["lon"]
+        st.rerun()
+
+with st.sidebar.expander("🛠️ Modifica coordinate a mano"):
+    manual_name = st.text_input("Nome", value=st.session_state.origin_name)
+    manual_lat = st.number_input("Latitudine", value=st.session_state.origin_lat, format="%.5f")
+    manual_lon = st.number_input("Longitudine", value=st.session_state.origin_lon, format="%.5f")
+    if manual_name != st.session_state.origin_name or manual_lat != st.session_state.origin_lat or manual_lon != st.session_state.origin_lon:
+        if st.button("Salva coordinate manuali"):
+            st.session_state.origin_name = manual_name
+            st.session_state.origin_lat = manual_lat
+            st.session_state.origin_lon = manual_lon
+            st.rerun()
 
 st.sidebar.header("🎯 Filtri Siti")
 min_sqm = st.sidebar.slider("Soglia Minima SQM (mag/arcsec²)", min_value=21.0, max_value=22.0, value=21.5, step=0.05)
 max_drive_hours = st.sidebar.slider("Tempo Max Guida (ore)", min_value=1.0, max_value=3.5, value=2.5, step=0.25)
 only_paved = st.sidebar.checkbox("Solo strade completamente asfaltate", value=True)
 
-# Tabs
+# ----------------- TABS -----------------
 tab_ranking, tab_test_point, tab_map_view = st.tabs(["🏆 Classifica Siti Buoi", "🔍 Testa un Punto Personalizzato", "🗺️ Mappa Interattiva"])
 
 @st.cache_data(ttl=3600)
-def get_sites_data(lat, lon):
-    return evaluate_all_sites(origin={"name": origin_name, "lat": lat, "lon": lon}, min_sqm=20.5)
+def get_sites_data(lat, lon, origin_label):
+    return evaluate_all_sites(origin={"name": origin_label, "lat": lat, "lon": lon}, min_sqm=20.5)
 
-sites_data = get_sites_data(origin_lat, origin_lon)
+sites_data = get_sites_data(st.session_state.origin_lat, st.session_state.origin_lon, st.session_state.origin_name)
 
 # Filtra
 filtered = [
@@ -58,7 +120,7 @@ filtered = [
 ]
 
 with tab_ranking:
-    st.subheader(f"📍 Siti con SQM ≥ {min_sqm:.2f} entro {max_drive_hours}h da {origin_name}")
+    st.subheader(f"📍 Siti con SQM ≥ {min_sqm:.2f} entro {max_drive_hours}h da {st.session_state.origin_name}")
     st.write(f"Trovati **{len(filtered)}** siti idonei ordinati per tempo reale di guida.")
     
     table_rows = []
@@ -99,19 +161,40 @@ with tab_ranking:
         st.warning("Nessun sito trovato con i filtri attuali. Prova ad abbassare la soglia SQM o aumentare il tempo di guida.")
 
 with tab_test_point:
-    st.subheader("🔍 Testa un Punto Qualsiasi (Coordinate GPS)")
-    st.write("Inserisci le coordinate di un punto montano qualsiasi per calcolarne SQM e tempo di guida reale da Ghirano:")
+    st.subheader("🔍 Testa un Punto Qualsiasi (Città, Valico o Coordinate GPS)")
+    st.write("Puoi cercare una località per nome oppure inserire manualmente le coordinate geografiche:")
     
+    # Ricerca rapida del punto da testare
+    test_search = st.text_input(
+        "🔎 Cerca località di destinazione per nome",
+        placeholder="Es. Passo Giau, Sauris, Piancavallo, Cortina d'Ampezzo...",
+        key="test_search_input"
+    )
+    if test_search:
+        with st.spinner("Ricerca località in corso..."):
+            test_found = search_locations(test_search)
+            if test_found:
+                test_opts = {f"📍 {p['name']}": p for p in test_found}
+                selected_test = st.selectbox("Seleziona tra i risultati:", options=list(test_opts.keys()))
+                if st.button("📥 Usa queste coordinate per il test"):
+                    c_test = test_opts[selected_test]
+                    st.session_state.test_name = c_test["name"]
+                    st.session_state.test_lat = c_test["lat"]
+                    st.session_state.test_lon = c_test["lon"]
+                    st.rerun()
+            else:
+                st.caption("Nessuna destinazione trovata con questo nome. Prova a inserire le coordinate sotto.")
+
     c1, c2 = st.columns(2)
     with c1:
-        test_lat = st.number_input("Latitudine", value=46.4795, format="%.5f")
+        st.session_state.test_lat = st.number_input("Latitudine destinazione", value=st.session_state.test_lat, format="%.5f")
     with c2:
-        test_lon = st.number_input("Longitudine", value=12.5855, format="%.5f")
+        st.session_state.test_lon = st.number_input("Longitudine destinazione", value=st.session_state.test_lon, format="%.5f")
         
     if st.button("🚀 Interroga LightPollutionMap & Calcola Itinerario"):
-        with st.spinner("Interrogazione raster LPM e calcolo percorso OSRM..."):
-            res_lpm = query_lpm_point(test_lat, test_lon)
-            res_route = query_driving_route(origin_lat, origin_lon, test_lat, test_lon)
+        with st.spinner(f"Interrogazione raster LPM e calcolo percorso OSRM da {st.session_state.origin_name}..."):
+            res_lpm = query_lpm_point(st.session_state.test_lat, st.session_state.test_lon)
+            res_route = query_driving_route(st.session_state.origin_lat, st.session_state.origin_lon, st.session_state.test_lat, st.session_state.test_lon)
             
             m1, m2, m3, m4 = st.columns(4)
             m1.metric("SQM 2025", f"{res_lpm['sqm_2025']} mag/arcsec²")
@@ -119,8 +202,8 @@ with tab_test_point:
             m3.metric("Distanza Stradale", f"{res_route['distance_km']} km")
             m4.metric("Quota Terreno", f"{res_lpm['elevation_m']} m")
             
-            st.info(f"**Bortle:** {res_lpm['bortle']} • **NELM:** {res_lpm['nelm']} mag")
-            gmaps = f"https://www.google.com/maps/dir/?api=1&origin={origin_lat},{origin_lon}&destination={test_lat},{test_lon}&travelmode=driving"
+            st.info(f"**Località:** {st.session_state.test_name} • **Bortle:** {res_lpm['bortle']} • **NELM:** {res_lpm['nelm']} mag")
+            gmaps = f"https://www.google.com/maps/dir/?api=1&origin={st.session_state.origin_lat},{st.session_state.origin_lon}&destination={st.session_state.test_lat},{st.session_state.test_lon}&travelmode=driving"
             st.link_button("🧭 Apri Itinerario in Google Maps", gmaps)
 
 with tab_map_view:

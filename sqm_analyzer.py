@@ -194,6 +194,58 @@ CURATED_SITES = [
 ]
 
 
+def search_locations(query: str) -> List[Dict]:
+    """
+    Cerca le coordinate geografiche (lat, lon) a partire dal nome di una città, comune o indirizzo.
+    Utilizza OpenStreetMap Nominatim con fallback su Open-Meteo Geocoding.
+    """
+    if not query or len(query.strip()) < 2:
+        return []
+    
+    results = []
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    }
+
+    # 1. OpenStreetMap Nominatim
+    try:
+        url = f"https://nominatim.openstreetmap.org/search?q={requests.utils.quote(query)}&format=json&limit=5&countrycodes=it,si,at,ch"
+        resp = requests.get(url, headers=headers, timeout=6)
+        if resp.status_code == 200:
+            for item in resp.json():
+                display = item.get("display_name", "")
+                parts = [p.strip() for p in display.split(",")]
+                short_name = ", ".join(parts[:3]) if len(parts) >= 3 else display
+                results.append({
+                    "name": short_name,
+                    "full_name": display,
+                    "lat": round(float(item["lat"]), 5),
+                    "lon": round(float(item["lon"]), 5)
+                })
+    except Exception:
+        pass
+
+    # 2. Fallback su Open-Meteo Geocoding
+    if not results:
+        try:
+            url = f"https://geocoding-api.open-meteo.com/v1/search?name={requests.utils.quote(query)}&count=5&language=it"
+            resp = requests.get(url, timeout=6)
+            if resp.status_code == 200:
+                for r in resp.json().get("results", []):
+                    parts = [r.get("name"), r.get("admin1"), r.get("country")]
+                    name_str = ", ".join([p for p in parts if p])
+                    results.append({
+                        "name": name_str,
+                        "full_name": name_str,
+                        "lat": round(float(r["latitude"]), 5),
+                        "lon": round(float(r["longitude"]), 5)
+                    })
+        except Exception:
+            pass
+
+    return results
+
+
 def generate_lpm_token() -> str:
     """Genera il token di sessione per l'API di lightpollutionmap.info."""
     now_ms = int(time.time() * 1000)
