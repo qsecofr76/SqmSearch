@@ -25,7 +25,8 @@ st.markdown(
     """
     Questo strumento supera il limite della ricerca "in linea d'aria" di *LightPollutionMap*,
     valutando l'**effettiva raggiungibilità in auto** (tempi di percorrenza e distanze reali su strada)
-    e i valori fotometrici **SQM / Bortle** dai server di *LightPollutionMap.info*.
+    e i valori fotometrici **SQM / Bortle** aggiornati dai server di *LightPollutionMap.info*.  
+    Copertura estesa: **Triveneto** (Friuli-Venezia Giulia, Veneto, Trentino-Alto Adige), **Carinzia (Austria)**, **Slovenia Occidentale** e **Costa & Lagune**.
     """
 )
 
@@ -51,7 +52,7 @@ st.sidebar.header("📍 Punto di Partenza")
 # Barra di ricerca automatica della località di partenza
 search_query = st.sidebar.text_input(
     "🔍 Cerca Città o Comune di partenza",
-    placeholder="Es. Ghirano, Pordenone, Treviso...",
+    placeholder="Es. Ghirano, Pordenone, Treviso, Udine...",
     key="origin_search_input"
 )
 
@@ -98,8 +99,24 @@ with st.sidebar.expander("🛠️ Modifica coordinate a mano"):
             st.rerun()
 
 st.sidebar.header("🎯 Filtri Siti")
+
+all_macro_regions = [
+    "Friuli-Venezia Giulia",
+    "Veneto",
+    "Trentino-Alto Adige",
+    "Carinzia (Austria)",
+    "Slovenia Occidentale",
+    "Costa & Lagune"
+]
+
+selected_macros = st.sidebar.multiselect(
+    "🌍 Area / Macro-regione",
+    options=all_macro_regions,
+    default=all_macro_regions
+)
+
 min_sqm = st.sidebar.slider("Soglia Minima SQM (mag/arcsec²)", min_value=19.5, max_value=22.0, value=20.5, step=0.05)
-max_drive_hours = st.sidebar.slider("Tempo Max Guida (ore)", min_value=1.0, max_value=3.5, value=2.5, step=0.25)
+max_drive_hours = st.sidebar.slider("Tempo Max Guida (ore)", min_value=1.0, max_value=5.0, value=3.5, step=0.25)
 only_paved = st.sidebar.checkbox("Solo strade completamente asfaltate", value=True)
 
 # ----------------- TABS -----------------
@@ -117,6 +134,7 @@ filtered = [
     if (s["sqm_2025"] or 0) >= min_sqm
     and (s["duration_min"] / 60.0) <= max_drive_hours
     and (not only_paved or s.get("paved", True))
+    and (s.get("macro_region") in selected_macros)
 ]
 
 with tab_ranking:
@@ -128,6 +146,7 @@ with tab_ranking:
         table_rows.append({
             "#": idx,
             "Località": s["name"],
+            "Area": s.get("macro_region", "Altro"),
             "Zona": s["region"],
             "SQM 2025": s["sqm_2025"],
             "SQM 2015": s["sqm_2015"],
@@ -159,7 +178,7 @@ with tab_ranking:
                 style = "background-color: #fef08a; color: #000000; font-weight: 600;"
             return [style] * len(row)
 
-        display_cols = ["#", "Località", "Zona", "SQM 2025", "Quota (m)", "Tempo Auto", "Distanza (km)", "Bortle"]
+        display_cols = ["#", "Località", "Area", "Zona", "SQM 2025", "Quota (m)", "Tempo Auto", "Distanza (km)", "Bortle"]
         styled_df = df[display_cols].style.apply(style_rows_by_sqm, axis=1).format({
             "SQM 2025": "{:.2f}",
             "Quota (m)": "{:d}",
@@ -174,17 +193,17 @@ with tab_ranking:
         
         st.markdown("### 📋 Dettagli dei Siti e Accessibilità Auto")
         for idx, s in enumerate(filtered, 1):
-            with st.expander(f"#{idx} - {s['name']}  |  SQM: {s['sqm_2025']}  |  🚗 {s['duration_str']} ({s['distance_km']} km)  |  🏔️ {int(s['elevation_m'])}m"):
+            with st.expander(f"#{idx} - {s['name']}  |  {s.get('macro_region', '')}  |  SQM: {s['sqm_2025']}  |  🚗 {s['duration_str']} ({s['distance_km']} km)  |  🏔️ {int(s['elevation_m'])}m"):
                 col1, col2 = st.columns([3, 1])
                 with col1:
-                    st.write(f"**Regione / Valico:** {s['region']}")
+                    st.write(f"**Area:** {s.get('macro_region', '')} • **Dettaglio Zona:** {s['region']}")
                     st.write(f"**Caratteristiche e Accesso:** {s['access']}")
                     st.write(f"**Classe Bortle:** {s['bortle']} • **NELM (Mag. limite occhio nudo):** {s['nelm']}")
                     st.write(f"**Coordinate:** `{s['lat']:.4f}, {s['lon']:.4f}`")
                 with col2:
                     st.link_button("🧭 Naviga con Google Maps", s["gmaps_url"], width="stretch")
     else:
-        st.warning("Nessun sito trovato con i filtri attuali. Prova ad abbassare la soglia SQM o aumentare il tempo di guida.")
+        st.warning("Nessun sito trovato con i filtri attuali. Prova a selezionare più aree o ad aumentare il tempo di guida.")
 
 with tab_test_point:
     st.subheader("🔍 Testa un Punto Qualsiasi (Città, Valico o Coordinate GPS)")
@@ -193,7 +212,7 @@ with tab_test_point:
     # Ricerca rapida del punto da testare
     test_search = st.text_input(
         "🔎 Cerca località di destinazione per nome",
-        placeholder="Es. Passo Giau, Sauris, Piancavallo, Cortina d'Ampezzo...",
+        placeholder="Es. Passo Giau, Sauris, Piancavallo, Mangart, Emberger Alm...",
         key="test_search_input"
     )
     if test_search:
@@ -234,14 +253,14 @@ with tab_test_point:
 
 with tab_map_view:
     st.subheader("🗺️ Mappa Interattiva dei Siti")
-    st.info("💡 **Nuova funzione:** Clicca in **qualsiasi punto** della mappa per calcolare all'istante l'SQM da LightPollutionMap e tracciare l'itinerario in auto con tempi e distanze da " + st.session_state.origin_name + "!")
-    st.write("La mappa completa è disponibile anche aprendo direttamente il file `sqm_dark_sites_map.html` a schermo intero nel browser.")
+    st.info("💡 **Clicca sulla mappa:** Clicca in **qualsiasi punto** per calcolare all'istante l'SQM e tracciare l'itinerario in auto con tempi e distanze da " + st.session_state.origin_name + "!")
+    st.write("La mappa include tutte le località montane e costiere di Triveneto, Carinzia e Slovenia Occidentale.")
     try:
         with open("sqm_dark_sites_map.html", "r", encoding="utf-8") as f:
             map_html = f.read()
         if hasattr(st, "iframe"):
-            st.iframe(map_html, height=700, width="stretch")
+            st.iframe(map_html, height=720, width="stretch")
         else:
-            st.components.v1.html(map_html, height=700, scrolling=True)
+            st.components.v1.html(map_html, height=720, scrolling=True)
     except Exception as e:
         st.error(f"Impossibile caricare la mappa: {e}")
