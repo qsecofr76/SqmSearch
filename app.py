@@ -10,6 +10,7 @@ from sqm_analyzer import (
     generate_lpm_token,
     query_lpm_point,
     query_driving_route,
+    calculate_routes_for_origin,
     evaluate_all_sites,
     search_locations
 )
@@ -30,7 +31,7 @@ st.markdown(
     """
 )
 
-# Inizializza session_state per il punto di partenza
+# 1. Inizializza session_state per il punto di partenza: Ghirano predefinito lanciato subito
 if "origin_name" not in st.session_state:
     st.session_state.origin_name = DEFAULT_ORIGIN["name"]
 if "origin_lat" not in st.session_state:
@@ -98,63 +99,33 @@ with st.sidebar.expander("🛠️ Modifica coordinate a mano"):
             st.session_state.origin_lon = manual_lon
             st.rerun()
 
-st.sidebar.header("🎯 Filtri Siti")
+# ----------------- CARICAMENTO DATI SITI (ISTANTANEO) -----------------
+@st.cache_data(ttl=3600)
+def get_sites_data(lat, lon, origin_label):
+    return calculate_routes_for_origin(lat, lon, origin_label)
 
-all_macro_regions = [
-    "Friuli-Venezia Giulia",
-    "Veneto",
-    "Trentino-Alto Adige",
-    "Carinzia (Austria)",
-    "Slovenia Occidentale",
-    "Costa & Lagune"
-]
-
-selected_macros = st.sidebar.multiselect(
-    "🌍 Area / Macro-regione",
-    options=all_macro_regions,
-    default=all_macro_regions
-)
-
-min_sqm = st.sidebar.slider("Soglia Minima SQM (mag/arcsec²)", min_value=19.5, max_value=22.0, value=20.5, step=0.05)
-max_drive_hours = st.sidebar.slider("Tempo Max Guida (ore)", min_value=1.0, max_value=5.0, value=3.5, step=0.25)
-only_paved = st.sidebar.checkbox("Solo strade completamente asfaltate", value=True)
+sites_data = get_sites_data(st.session_state.origin_lat, st.session_state.origin_lon, st.session_state.origin_name)
 
 # ----------------- TABS -----------------
 tab_ranking, tab_test_point, tab_map_view = st.tabs(["🏆 Classifica Siti Bui", "🔍 Testa un Punto Personalizzato", "🗺️ Mappa Interattiva"])
 
-@st.cache_data(ttl=3600)
-def get_sites_data(lat, lon, origin_label):
-    return evaluate_all_sites(origin={"name": origin_label, "lat": lat, "lon": lon}, min_sqm=19.5)
-
-sites_data = get_sites_data(st.session_state.origin_lat, st.session_state.origin_lon, st.session_state.origin_name)
-
-# Filtra
-filtered = [
-    s for s in sites_data
-    if (s["sqm_2025"] or 0) >= min_sqm
-    and (s["duration_min"] / 60.0) <= max_drive_hours
-    and (not only_paved or s.get("paved", True))
-    and (s.get("macro_region") in selected_macros)
-]
-
 with tab_ranking:
-    st.subheader(f"📍 Siti con SQM ≥ {min_sqm:.2f} entro {max_drive_hours}h da {st.session_state.origin_name}")
-    st.write(f"Trovati **{len(filtered)}** siti idonei ordinati per tempo reale di guida.")
+    st.subheader(f"📍 Tutti i Siti di Osservazione Ordinati per Tempo di Guida da {st.session_state.origin_name}")
+    st.write(f"Trovati **{len(sites_data)}** siti montani e costieri pronti per l'osservazione, ordinati dal più vicino al più lontano.")
     
     table_rows = []
-    for idx, s in enumerate(filtered, 1):
+    for idx, s in enumerate(sites_data, 1):
         table_rows.append({
             "#": idx,
             "Località": s["name"],
             "Area": s.get("macro_region", "Altro"),
             "Zona": s["region"],
-            "SQM 2025": s["sqm_2025"],
-            "SQM 2015": s["sqm_2015"],
-            "Quota (m)": int(s["elevation_m"]),
-            "Tempo Auto": s["duration_str"],
-            "Distanza (km)": s["distance_km"],
-            "Bortle": s["bortle"],
-            "Google Maps": s["gmaps_url"]
+            "SQM 2025": s.get("sqm_2025", 0.0),
+            "Quota (m)": int(s.get("elevation_m", 0)),
+            "Tempo Auto": s.get("duration_str", "N/D"),
+            "Distanza (km)": s.get("distance_km", 0.0),
+            "Bortle": s.get("bortle", "N/D"),
+            "Google Maps": s.get("gmaps_url", "")
         })
         
     df = pd.DataFrame(table_rows)
@@ -192,24 +163,21 @@ with tab_ranking:
         )
         
         st.markdown("### 📋 Dettagli dei Siti e Accessibilità Auto")
-        for idx, s in enumerate(filtered, 1):
-            with st.expander(f"#{idx} - {s['name']}  |  {s.get('macro_region', '')}  |  SQM: {s['sqm_2025']}  |  🚗 {s['duration_str']} ({s['distance_km']} km)  |  🏔️ {int(s['elevation_m'])}m"):
+        for idx, s in enumerate(sites_data, 1):
+            with st.expander(f"#{idx} - {s['name']}  |  {s.get('macro_region', '')}  |  SQM: {s.get('sqm_2025')}  |  🚗 {s.get('duration_str')} ({s.get('distance_km')} km)  |  🏔️ {int(s.get('elevation_m', 0))}m"):
                 col1, col2 = st.columns([3, 1])
                 with col1:
                     st.write(f"**Area:** {s.get('macro_region', '')} • **Dettaglio Zona:** {s['region']}")
                     st.write(f"**Caratteristiche e Accesso:** {s['access']}")
-                    st.write(f"**Classe Bortle:** {s['bortle']} • **NELM (Mag. limite occhio nudo):** {s['nelm']}")
+                    st.write(f"**Classe Bortle:** {s.get('bortle')} • **NELM:** {s.get('nelm')} mag")
                     st.write(f"**Coordinate:** `{s['lat']:.4f}, {s['lon']:.4f}`")
                 with col2:
-                    st.link_button("🧭 Naviga con Google Maps", s["gmaps_url"], width="stretch")
-    else:
-        st.warning("Nessun sito trovato con i filtri attuali. Prova a selezionare più aree o ad aumentare il tempo di guida.")
+                    st.link_button("🧭 Naviga con Google Maps", s.get("gmaps_url", ""), width="stretch")
 
 with tab_test_point:
     st.subheader("🔍 Testa un Punto Qualsiasi (Città, Valico o Coordinate GPS)")
     st.write("Puoi cercare una località per nome oppure inserire manualmente le coordinate geografiche:")
     
-    # Ricerca rapida del punto da testare
     test_search = st.text_input(
         "🔎 Cerca località di destinazione per nome",
         placeholder="Es. Passo Giau, Sauris, Piancavallo, Mangart, Emberger Alm...",
