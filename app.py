@@ -54,8 +54,9 @@ st.sidebar.header("📍 Punto di Partenza")
 
 # Barra di ricerca automatica della località di partenza
 search_query = st.sidebar.text_input(
-    "🔍 Cerca Città o Comune di partenza",
-    placeholder="Es. Ghirano, Pordenone, Treviso, Udine...",
+    "🔍 Cerca Partenza",
+    placeholder="Città, Passo, Vetta, link Maps o GPS...",
+    help="Puoi digitare città, comuni, passi alpini (es. Passo Pramollo, Passo Giau), vette, rifugi, incollare un link Google Maps o coordinate GPS.",
     key="origin_search_input"
 )
 
@@ -64,7 +65,12 @@ if search_query:
         with st.spinner("Ricerca in corso..."):
             found = search_locations(search_query)
             if found:
-                options = {f"📍 {p['name']}": p for p in found}
+                options = {}
+                for idx, p in enumerate(found, 1):
+                    lbl = f"📍 {p['name']}"
+                    if lbl in options:
+                        lbl = f"{lbl} (#{idx})"
+                    options[lbl] = p
                 selected_label = st.selectbox(
                     "Seleziona tra i risultati:",
                     options=list(options.keys()),
@@ -72,12 +78,12 @@ if search_query:
                 )
                 if st.button("✅ Imposta questa partenza", width="stretch"):
                     chosen = options[selected_label]
-                    st.session_state.origin_name = chosen["name"]
+                    st.session_state.origin_name = chosen.get("display_name") or chosen["name"]
                     st.session_state.origin_lat = chosen["lat"]
                     st.session_state.origin_lon = chosen["lon"]
                     st.rerun()
             else:
-                st.caption("⚠️ Nessuna località trovata. Prova a specificare il comune o la provincia.")
+                st.caption("⚠️ Nessuna località trovata. Puoi incollare direttamente un link Google Maps o coordinate GPS.")
 
 st.sidebar.markdown(f"**Partenza attiva:**  \n📍 `{st.session_state.origin_name}`")
 st.sidebar.caption(f"Coordinate: `{st.session_state.origin_lat:.4f}, {st.session_state.origin_lon:.4f}`")
@@ -202,24 +208,30 @@ with tab_test_point:
     st.write("Puoi cercare una località per nome oppure inserire manualmente le coordinate geografiche:")
     
     test_search = st.text_input(
-        "🔎 Cerca località di destinazione per nome",
-        placeholder="Es. Meduno, Monte Pizzoc, Monte Avena, Passo Giau, Mangart...",
+        "🔎 Cerca località di destinazione",
+        placeholder="Es. Passo Pramollo, Sonnleitn, Meduno, link Maps o GPS...",
+        help="Trova qualsiasi città, comune, valico alpino, monte, rifugio, o incolla un link Google Maps o coordinate GPS.",
         key="test_search_input"
     )
     if test_search:
         with st.spinner("Ricerca località in corso..."):
             test_found = search_locations(test_search)
             if test_found:
-                test_opts = {f"📍 {p['name']}": p for p in test_found}
+                test_opts = {}
+                for idx, p in enumerate(test_found, 1):
+                    lbl = f"📍 {p['name']}"
+                    if lbl in test_opts:
+                        lbl = f"{lbl} (#{idx})"
+                    test_opts[lbl] = p
                 selected_test = st.selectbox("Seleziona tra i risultati:", options=list(test_opts.keys()))
                 if st.button("📥 Usa queste coordinate per il test"):
                     c_test = test_opts[selected_test]
-                    st.session_state.test_name = c_test["name"]
+                    st.session_state.test_name = c_test.get("display_name") or c_test["name"]
                     st.session_state.test_lat = c_test["lat"]
                     st.session_state.test_lon = c_test["lon"]
                     st.rerun()
             else:
-                st.caption("Nessuna destinazione trovata con questo nome. Prova a inserire le coordinate sotto.")
+                st.caption("Nessuna destinazione trovata. Puoi incollare direttamente un link Google Maps o coordinate GPS.")
 
     c1, c2 = st.columns(2)
     with c1:

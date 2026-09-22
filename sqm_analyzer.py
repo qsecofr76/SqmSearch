@@ -9,6 +9,8 @@ import base64
 import time
 import math
 import json
+import re
+import urllib.request
 import requests
 from typing import List, Dict, Optional
 
@@ -61,50 +63,121 @@ CURATED_SITES = load_catalog("nordest")
 
 def search_locations(query: str) -> List[Dict]:
     """
-    Cerca le coordinate geografiche (lat, lon) a partire dal nome di una città o comune.
-    Utilizza OpenStreetMap Nominatim con fallback su Open-Meteo Geocoding.
+    Cerca coordinate (lat, lon) per qualsiasi località o input.
+    Supporta in ordine intelligente:
+    1. Link diretti di Google Maps (es. https://maps.app.goo.gl/...)
+    2. Coordinate GPS dirette (es. 46.5848, 13.2590)
+    3. Ricerca nei cataloghi locali (Passi montani, valichi storici, cime, siti astrofili)
+    4. Komoot Photon API (OSM: eccellente per valichi alpini, passi, monti, rifugi, paesi)
+    5. OpenStreetMap Nominatim
+    6. Open-Meteo Geocoding (fallback)
     """
     if not query or len(query.strip()) < 2:
         return []
-    
-    results = []
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)"
-    }
 
-    # 1. OpenStreetMap Nominatim
+    q = query.strip()
+    results = []
+    seen = set()
+
+    def add_result(name: str, full_name: str, lat: float, lon: float, source: str = "", display_name: str = ""):
+        key = (round(lat, 3), round(lon, 3))
+        if key in seen:
+            return
+        seen.add(key)
+        label = f"{name} [{source}]" if source else name
+        results.append({
+            "name": label,
+            "display_name": display_name or name,
+            "full_name": full_name,
+            "lat": round(lat, 5),
+            "lon": round(lon, 5)
+        })
+
+    # 1. Riconoscimento Link Google Maps (es. https://maps.app.goo.gl/vvS98yxfqL8ogCBJ8)
+    if "http://" in q or "https://" in q or "maps.app" in q or "goo.gl" in q or "google.com/maps" in q:
+        try:
+            url = q if q.startswith("http") else "https://" + q
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            final_url = urllib.request.urlopen(req, timeout=4).geturl()
+            m = re.search(r"([-+]?\d+\.\d+)[,\s]+([-+]?\d+\.\d+)", final_url)
+            if not m:
+                m = re.search(r"@([-+]?\d+\.\d+),([-+]?\d+\.\d+)", final_url)
+            if m:
+                lat, lon = float(m.group(1)), float(m.group(2))
+                add_result(f"Posizione da Google Maps ({lat:.4f}, {lon:.4f})", final_url, lat, lon, "Link Maps", f"Google Maps ({lat:.4f}, {lon:.4f})")
+                return results
+        except Exception:
+            pass
+
+    # 2. Riconoscimento Coordinate GPS Dirette (es. "46.5848, 13.2590")
+    coord_m = re.match(r"^[-+]?([0-9]*[.])?[0-9]+[,\s]+[-+]?([0-9]*[.])?[0-9]+$", q)
+    if coord_m:
+        parts = re.split(r"[,\s]+", q)
+        if len(parts) >= 2:
+            try:
+                lat, lon = float(parts[0]), float(parts[1])
+                if -90 <= lat <= 90 and -180 <= lon <= 180:
+                    add_result(f"Punto GPS ({lat:.4f}, {lon:.4f})", f"Lat: {lat}, Lon: {lon}", lat, lon, "GPS", f"GPS ({lat:.4f}, {lon:.4f})")
+                    return results
+            except ValueError:
+                pass
+
+    # 3. Ricerca nei cataloghi locali (Passi montani storici, cime, rifugi, siti astrofili)
     try:
-        url = f"https://nominatim.openstreetmap.org/search?q={requests.utils.quote(query)}&format=json&limit=5&countrycodes=it,si,at,ch"
-        resp = requests.get(url, headers=headers, timeout=6)
+        q_lower = q.lower()
+        catalog_sites = CURATED_SITES if CURATED_SITES else NORDEST_SITES
+        for s in catalog_sites:
+            s_name = s.get("name", "")
+            s_reg = s.get("region", "")
+            s_macro = s.get("macro_region", "")
+            if q_lower in s_name.lower() or q_lower in s_reg.lower() or q_lower in s_macro.lower():
+                add_result(s_name, f"{s_name} - {s_reg}", s["lat"], s["lon"], "Catalogo Siti", s_name)
+    except Exception:
+        pass
+
+    # 4. Photon API (Komoot OpenStreetMap) - eccellente per passi montani, valichi, cime, rifugi e paesi
+    try:
+        p_url = f"https://photon.komoot.io/api/?q={requests.utils.quote(q)}&lat=46.2&lon=12.5&limit=7"
+        resp = requests.get(p_url, headers={"User-Agent": "SqmSearchApp/2.0"}, timeout=4)
+        if resp.status_code == 200:
+            for feat in resp.json().get("features", []):
+                props = feat.get("properties", {})
+                coords = feat.get("geometry", {}).get("coordinates", [])
+                if len(coords) >= 2:
+                    p_lon, p_lat = coords[0], coords[1]
+                    name = props.get("name") or props.get("street") or "Località"
+                    details = [props.get("city") or props.get("town") or props.get("county"), props.get("state"), props.get("country")]
+                    details_str = ", ".join([d for d in details if d])
+                    full = f"{name}, {details_str}" if details_str else name
+                    display = f"{name} ({details_str})" if details_str else name
+                    add_result(display, full, p_lat, p_lon, display_name=name)
+    except Exception:
+        pass
+
+    # 5. OpenStreetMap Nominatim
+    try:
+        nom_url = f"https://nominatim.openstreetmap.org/search?q={requests.utils.quote(q)}&format=json&limit=5&countrycodes=it,si,at,ch"
+        resp = requests.get(nom_url, headers={"User-Agent": "SqmSearch-App/2.0 (astro-sqm-search@github)"}, timeout=4)
         if resp.status_code == 200:
             for item in resp.json():
                 display = item.get("display_name", "")
                 parts = [p.strip() for p in display.split(",")]
                 short_name = ", ".join(parts[:3]) if len(parts) >= 3 else display
-                results.append({
-                    "name": short_name,
-                    "full_name": display,
-                    "lat": round(float(item["lat"]), 5),
-                    "lon": round(float(item["lon"]), 5)
-                })
+                clean_name = parts[0] if parts else short_name
+                add_result(short_name, display, float(item["lat"]), float(item["lon"]), display_name=clean_name)
     except Exception:
         pass
 
-    # 2. Fallback su Open-Meteo Geocoding
-    if not results:
+    # 6. Fallback Open-Meteo Geocoding
+    if len(results) < 2:
         try:
-            url = f"https://geocoding-api.open-meteo.com/v1/search?name={requests.utils.quote(query)}&count=5&language=it"
-            resp = requests.get(url, timeout=6)
+            om_url = f"https://geocoding-api.open-meteo.com/v1/search?name={requests.utils.quote(q)}&count=5&language=it"
+            resp = requests.get(om_url, timeout=4)
             if resp.status_code == 200:
                 for r in resp.json().get("results", []):
                     parts = [r.get("name"), r.get("admin1"), r.get("country")]
                     name_str = ", ".join([p for p in parts if p])
-                    results.append({
-                        "name": name_str,
-                        "full_name": name_str,
-                        "lat": round(float(r["latitude"]), 5),
-                        "lon": round(float(r["longitude"]), 5)
-                    })
+                    add_result(name_str, name_str, float(r["latitude"]), float(r["longitude"]), display_name=r.get("name", name_str))
         except Exception:
             pass
 
