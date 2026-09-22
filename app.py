@@ -143,20 +143,20 @@ with tab_ranking:
         def style_rows_by_sqm(row):
             sqm = row["SQM 2025"]
             if sqm >= 21.75:
-                # Verde scuro top dark
-                style = "background-color: rgba(4, 120, 87, 0.28); color: #6ee7b7; font-weight: 600;"
+                # Verde scuro (SQM >= 21.75) con testo nero ad alto contrasto
+                style = "background-color: #86efac; color: #000000; font-weight: 600;"
             elif sqm >= 21.70:
-                # Verde smeraldo
-                style = "background-color: rgba(16, 185, 129, 0.22); color: #a7f3d0; font-weight: 600;"
+                # Verde smeraldo (SQM 21.70 - 21.74)
+                style = "background-color: #bbf7d0; color: #000000; font-weight: 600;"
             elif sqm >= 21.50:
-                # Blu
-                style = "background-color: rgba(37, 99, 235, 0.22); color: #bfdbfe;"
+                # Blu pastello (SQM 21.50 - 21.69)
+                style = "background-color: #bfdbfe; color: #000000; font-weight: 600;"
             elif sqm >= 21.00:
-                # Viola
-                style = "background-color: rgba(124, 58, 237, 0.20); color: #ddd6fe;"
+                # Viola pastello (SQM 21.00 - 21.49)
+                style = "background-color: #ddd6fe; color: #000000; font-weight: 600;"
             else:
-                # Ambra / Arancio
-                style = "background-color: rgba(217, 119, 6, 0.22); color: #fde68a;"
+                # Giallo / Ambra pastello (SQM 20.00 - 20.99)
+                style = "background-color: #fef08a; color: #000000; font-weight: 600;"
             return [style] * len(row)
 
         display_cols = ["#", "Località", "Zona", "SQM 2025", "Quota (m)", "Tempo Auto", "Distanza (km)", "Bortle"]
