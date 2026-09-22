@@ -128,9 +128,12 @@ with tab_ranking:
     
     table_rows = []
     for idx, s in enumerate(sites_data, 1):
+        gmaps = s.get("gmaps_url", "")
+        # Incorpora il nome della località nell'URL hash per estrazione pulita tramite LinkColumn
+        link_url = f"{gmaps}#loc={s['name']}"
         table_rows.append({
             "#": idx,
-            "Località": s["name"],
+            "Località": link_url,
             "Area": s.get("macro_region", "Altro"),
             "Zona": s["region"],
             "SQM 2025": s.get("sqm_2025", 0.0),
@@ -138,7 +141,7 @@ with tab_ranking:
             "Tempo Auto": s.get("duration_str", "N/D"),
             "Distanza (km)": s.get("distance_km", 0.0),
             "Bortle": s.get("bortle", "N/D"),
-            "Google Maps": s.get("gmaps_url", "")
+            "Google Maps": gmaps
         })
         
     df = pd.DataFrame(table_rows)
@@ -171,6 +174,13 @@ with tab_ranking:
 
         st.dataframe(
             styled_df,
+            column_config={
+                "Località": st.column_config.LinkColumn(
+                    "Località 🧭",
+                    help="Clicca sul nome della località per aprire l'itinerario in Google Maps",
+                    display_text=r"#loc=(.*)$"
+                )
+            },
             width="stretch",
             hide_index=True
         )
