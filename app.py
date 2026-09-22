@@ -140,8 +140,34 @@ with tab_ranking:
         
     df = pd.DataFrame(table_rows)
     if not df.empty:
+        def style_rows_by_sqm(row):
+            sqm = row["SQM 2025"]
+            if sqm >= 21.75:
+                # Verde scuro top dark
+                style = "background-color: rgba(4, 120, 87, 0.28); color: #6ee7b7; font-weight: 600;"
+            elif sqm >= 21.70:
+                # Verde smeraldo
+                style = "background-color: rgba(16, 185, 129, 0.22); color: #a7f3d0; font-weight: 600;"
+            elif sqm >= 21.50:
+                # Blu
+                style = "background-color: rgba(37, 99, 235, 0.22); color: #bfdbfe;"
+            elif sqm >= 21.00:
+                # Viola
+                style = "background-color: rgba(124, 58, 237, 0.20); color: #ddd6fe;"
+            else:
+                # Ambra / Arancio
+                style = "background-color: rgba(217, 119, 6, 0.22); color: #fde68a;"
+            return [style] * len(row)
+
+        display_cols = ["#", "Località", "Zona", "SQM 2025", "Quota (m)", "Tempo Auto", "Distanza (km)", "Bortle"]
+        styled_df = df[display_cols].style.apply(style_rows_by_sqm, axis=1).format({
+            "SQM 2025": "{:.2f}",
+            "Quota (m)": "{:d}",
+            "Distanza (km)": "{:.1f}"
+        })
+
         st.dataframe(
-            df[["#", "Località", "Zona", "SQM 2025", "Quota (m)", "Tempo Auto", "Distanza (km)", "Bortle"]],
+            styled_df,
             width="stretch",
             hide_index=True
         )
@@ -208,7 +234,8 @@ with tab_test_point:
 
 with tab_map_view:
     st.subheader("🗺️ Mappa Interattiva dei Siti")
-    st.write("La mappa completa con tracciati OSRM è disponibile anche aprendo direttamente il file `sqm_dark_sites_map.html` nel browser.")
+    st.info("💡 **Nuova funzione:** Clicca in **qualsiasi punto** della mappa per calcolare all'istante l'SQM da LightPollutionMap e tracciare l'itinerario in auto con tempi e distanze da " + st.session_state.origin_name + "!")
+    st.write("La mappa completa è disponibile anche aprendo direttamente il file `sqm_dark_sites_map.html` a schermo intero nel browser.")
     try:
         with open("sqm_dark_sites_map.html", "r", encoding="utf-8") as f:
             map_html = f.read()

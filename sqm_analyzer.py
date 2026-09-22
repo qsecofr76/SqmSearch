@@ -254,6 +254,118 @@ CURATED_SITES = [
         "region": "Cesiomaggiore / Dolomiti Bellunesi (BL)",
         "access": "Strada asfaltata fino al parcheggio della Val Canzoi (Parco Nazionale Dolomiti Bellunesi). Valle stretta e riparata. SQM ~21.37 in ~1h 46m.",
         "paved": True
+    },
+    {
+        "name": "Passo Pramollo (Nassfeld)",
+        "lat": 46.5644,
+        "lon": 13.2756,
+        "region": "Pontebba / Carinzia (UD/A)",
+        "access": "SP110 da Pontebba. Valico alpino a 1530m con ampi parcheggi all'ex confine. Buio notevole sulle Alpi Carniche orientali. SQM ~21.76.",
+        "paved": True
+    },
+    {
+        "name": "Laghi di Fusine (Lago Superiore)",
+        "lat": 46.4789,
+        "lon": 13.6708,
+        "region": "Tarvisio (UD)",
+        "access": "Strada asfaltata da Fusine in Valromana fino al parcheggio del Lago Superiore a 956m. Orizzonte sud verso la parete nord del Mangart, luogo suggestivo e molto buio. SQM ~21.69.",
+        "paved": True
+    },
+    {
+        "name": "Val Saisera (Malga Saisera)",
+        "lat": 46.4833,
+        "lon": 13.4833,
+        "region": "Malborghetto-Valbruna (UD)",
+        "access": "Strada asfaltata lungo la Val Saisera fino ai parcheggi terminali sotto il Jôf Fuart e Jôf di Montasio a 990m. Molto riparata dalle luci. SQM ~21.67.",
+        "paved": True
+    },
+    {
+        "name": "Sella Nevea (Piazzale Rif. Gilberti)",
+        "lat": 46.3889,
+        "lon": 13.4806,
+        "region": "Chiusaforte (UD)",
+        "access": "SP76 asfaltata. Ampi piazzali di sosta a 1210m tra il Montasio e il massiccio del Canin. SQM ~21.69.",
+        "paved": True
+    },
+    {
+        "name": "Valle Vecchia / Brussa (Caorle)",
+        "lat": 45.6267,
+        "lon": 12.9617,
+        "region": "Caorle / Valle Vecchia (VE)",
+        "access": "Strada provinciale della Brussa fino al grande parcheggio dell'oasi naturale di Valle Vecchia. L'area costiera più buia dell'Alto Adriatico: nessuna urbanizzazione né lampioni, orizzonte sud aperto sul mare! Raggiungibile in soli ~1h 05m (60 km) da Ghirano. SQM ~20.91.",
+        "paved": True
+    },
+    {
+        "name": "Foce del Tagliamento (Bibione Pineda)",
+        "lat": 45.6428,
+        "lon": 13.0967,
+        "region": "San Michele al Tagliamento (VE)",
+        "access": "Parcheggio terminale verso l'area naturale della foce del Tagliamento e faro. Orizzonte marino verso sud con ridotto inquinamento luminoso diretto. SQM ~20.70.",
+        "paved": True
+    },
+    {
+        "name": "Monte Zoncolan (Piazzale Vetta)",
+        "lat": 46.5014,
+        "lon": 12.9286,
+        "region": "Sutrio / Ovaro (UD)",
+        "access": "Strada asfaltata da Sutrio o da Ovaro. Grande piazzale al valico a 1730m. Panorama a 360° sulla Carnia, sopra le inversioni termiche. SQM ~21.62.",
+        "paved": True
+    },
+    {
+        "name": "Sella Carnizza (Val Resia)",
+        "lat": 46.3458,
+        "lon": 13.3167,
+        "region": "Resia / Lusevera (UD)",
+        "access": "SP42 asfaltata. Valico a 1086m tra Val Resia e Alta Val Torre. Zona silenziosa e schermata dalle luci di pianura e fondovalle. SQM ~21.56.",
+        "paved": True
+    },
+    {
+        "name": "Passo Falzarego",
+        "lat": 46.5186,
+        "lon": 12.0089,
+        "region": "Cortina d'Ampezzo / Livinallongo (BL)",
+        "access": "SR48 delle Dolomiti. Ampio piazzale al valico a 2105m sotto il Sass de Stria e il Lagazuoi. Trasparenza eccellente. SQM ~21.71.",
+        "paved": True
+    },
+    {
+        "name": "Passo San Pellegrino",
+        "lat": 46.3778,
+        "lon": 11.7892,
+        "region": "Falcade / Moena (BL/TN)",
+        "access": "SS346 comoda e ampia. Parcheggi al valico a 1918m tra Veneto e Trentino. SQM ~21.62.",
+        "paved": True
+    },
+    {
+        "name": "Passo Valles",
+        "lat": 46.3392,
+        "lon": 11.7828,
+        "region": "Falcade / Paneveggio (BL/TN)",
+        "access": "SP81 asfaltata. Piazzale al valico a 2032m sotto le Pale di San Martino. SQM ~21.61.",
+        "paved": True
+    },
+    {
+        "name": "Passo Rolle",
+        "lat": 46.2967,
+        "lon": 11.7878,
+        "region": "Primiero / Paneveggio (TN)",
+        "access": "SS50 comoda. Grandi piazzali a 1989m con vista iconica sulle Pale di San Martino e il Cimon della Pala. SQM ~21.57.",
+        "paved": True
+    },
+    {
+        "name": "Passo Fedaia (Diga / Marmolada)",
+        "lat": 46.4567,
+        "lon": 11.8864,
+        "region": "Rocca Pietore / Canazei (BL/TN)",
+        "access": "SP641 asfaltata. Grandi piazzali lungo il lago e la diga ai piedi della Marmolada a 2057m. SQM ~21.66.",
+        "paved": True
+    },
+    {
+        "name": "Sauris di Sopra (Sella Festons)",
+        "lat": 46.4750,
+        "lon": 12.6833,
+        "region": "Sauris (UD)",
+        "access": "Strada panoramica asfaltata da Sauris di Sopra verso Sella Festons a 1730m. Buio di alta montagna nel cuore della Carnia. SQM ~21.69.",
+        "paved": True
     }
 ]
 
@@ -760,6 +872,115 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
             }});
 
             cardsContainer.appendChild(card);
+        }});
+
+        // Gestore click su qualsiasi punto della mappa per calcolo istantaneo SQM e tempo auto
+        let clickMarker = null;
+        let clickRouteLayer = null;
+
+        map.on('click', async function(e) {{
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+
+            if (clickMarker) map.removeLayer(clickMarker);
+            if (clickRouteLayer) map.removeLayer(clickRouteLayer);
+
+            const loadingPopup = L.popup()
+                .setLatLng(e.latlng)
+                .setContent('<div style="padding:10px;text-align:center;font-family:sans-serif;">⏳ <b>Calcolo in corso...</b><br><small style="color:#9ca3af;">Interrogazione SQM e tempo guida da ' + origin.name + '</small></div>')
+                .openOn(map);
+
+            try {{
+                // 1. Interrogazione raster LPM per SQM e quota terreno
+                const now = new Date().getTime();
+                const qk = btoa(now + ";isuckdicks:)");
+                const lpmUrl = "https://www.lightpollutionmap.info/api/queryraster?qk=" + qk + "&ql=sb_2025&qt=point&qd=" + lon.toFixed(5) + "," + lat.toFixed(5);
+                
+                let sqm = 0;
+                let elev = 0;
+                let bortle = "N/D";
+                let nelm = "N/D";
+
+                try {{
+                    const lpmRes = await fetch(lpmUrl);
+                    const lpmText = await lpmRes.text();
+                    const parts = lpmText.split(',');
+                    const v = parseFloat(parts[0].split(';').pop());
+                    elev = parts[1] ? Math.round(parseFloat(parts[1])) : 0;
+
+                    sqm = Math.log10((v + 0.171168465) / 108e6) / -0.4;
+                    sqm = Math.round(sqm * 100) / 100;
+                    nelm = (7.93 - 5 * Math.log10(Math.pow(10, 4.316 - sqm / 5) + 1)).toFixed(2);
+
+                    if (sqm < 18.38) bortle = "Classe 8-9 (Città)";
+                    else if (sqm < 18.94) bortle = "Classe 7 (Periurbano)";
+                    else if (sqm < 19.50) bortle = "Classe 6 (Suburbano)";
+                    else if (sqm < 20.49) bortle = "Classe 5 (Suburbano)";
+                    else if (sqm < 21.69) bortle = "Classe 4 (Transizione)";
+                    else if (sqm < 21.89) bortle = "Classe 3 (Rurale)";
+                    else if (sqm < 21.99) bortle = "Classe 2 (Buio tipico)";
+                    else bortle = "Classe 1 (Cielo eccellente)";
+                }} catch(err) {{
+                    console.error("LPM error:", err);
+                }}
+
+                // 2. Calcolo percorso stradale OSRM da punto di partenza
+                let distKm = 0;
+                let durStr = "N/D";
+                const osrmUrl = "https://router.project-osrm.org/route/v1/driving/" + origin.lon + "," + origin.lat + ";" + lon.toFixed(5) + "," + lat.toFixed(5) + "?overview=full&geometries=geojson";
+
+                try {{
+                    const osrmRes = await fetch(osrmUrl);
+                    const osrmData = await osrmRes.json();
+                    if (osrmData.code === "Ok" && osrmData.routes && osrmData.routes.length > 0) {{
+                        const r = osrmData.routes[0];
+                        distKm = Math.round((r.distance / 1000) * 10) / 10;
+                        const durMin = Math.round(r.duration / 60);
+                        durStr = Math.floor(durMin / 60) + "h " + (durMin % 60) + "m (" + durMin + " min)";
+
+                        const coords = r.geometry.coordinates.map(c => [c[1], c[0]]);
+                        clickRouteLayer = L.polyline(coords, {{
+                            color: '#f43f5e',
+                            weight: 4,
+                            opacity: 0.9,
+                            dashArray: '6, 8'
+                        }}).addTo(map);
+                    }}
+                }} catch(err) {{
+                    console.error("OSRM error:", err);
+                }}
+
+                const badgeClass = getSqmBadgeClass(sqm);
+                const gmapsUrl = "https://www.google.com/maps/dir/?api=1&origin=" + origin.lat + "," + origin.lon + "&destination=" + lat.toFixed(5) + "," + lon.toFixed(5) + "&travelmode=driving";
+
+                const clickIcon = L.divIcon({{
+                    className: 'click-pin',
+                    html: '<div style="background:#f43f5e;border:2px solid white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:bold;box-shadow:0 0 14px rgba(244,63,94,1);">📍</div>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                }});
+
+                clickMarker = L.marker([lat, lon], {{ icon: clickIcon }}).addTo(map);
+                map.closePopup(loadingPopup);
+
+                const popupHtml = '<div style="font-family:sans-serif;min-width:230px;">' +
+                    '<h3 style="margin:0 0 4px 0;color:#f43f5e;font-size:1.05rem;">📍 Punto Cliccato</h3>' +
+                    '<div style="font-size:0.78rem;color:#9ca3af;margin-bottom:8px;">Coord: ' + lat.toFixed(4) + ', ' + lon.toFixed(4) + '</div>' +
+                    '<div style="margin-bottom:6px;">' +
+                        '<span class="badge ' + badgeClass + '">SQM ' + (sqm > 0 ? sqm.toFixed(2) : 'N/D') + '</span> ' +
+                        '<span class="badge badge-time">🚗 ' + durStr + '</span>' +
+                    '</div>' +
+                    '<div style="font-size:0.8rem;margin-bottom:4px;"><b>Distanza stradale:</b> ' + (distKm > 0 ? distKm + ' km' : 'N/D') + '</div>' +
+                    '<div style="font-size:0.8rem;margin-bottom:4px;"><b>Quota suolo:</b> ' + elev + ' m s.l.m.</div>' +
+                    '<div style="font-size:0.8rem;margin-bottom:6px;"><b>Bortle:</b> ' + bortle + ' • <b>NELM:</b> ' + nelm + ' mag</div>' +
+                    '<a class="nav-btn" style="background:#f43f5e;" href="' + gmapsUrl + '" target="_blank">🧭 Naviga verso questo punto</a>' +
+                '</div>';
+
+                clickMarker.bindPopup(popupHtml).openPopup();
+
+            }} catch(e) {{
+                loadingPopup.setContent('<div style="color:#ef4444;padding:8px;">Errore durante il calcolo. Riprova.</div>');
+            }}
         }});
     </script>
 </body>
