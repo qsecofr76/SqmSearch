@@ -27,21 +27,71 @@ def get_catalogs_dir() -> str:
     """Restituisce il percorso assoluto della cartella dei cataloghi."""
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "catalogs")
 
+PROFILES = {
+    "triveneto": {
+        "id": "triveneto",
+        "name": "Triveneto (Default)",
+        "catalog_id": "nordest",
+        "catalog_name": "Triveneto (NordEst, Carinzia, Slovenia)",
+        "default_origin": {
+            "name": "Ghirano di Prata (PN)",
+            "lat": 45.8617,
+            "lon": 12.5539
+        },
+        "default_test": {
+            "name": "Monte Valinis / Meduno Startplatz",
+            "lat": 46.2314,
+            "lon": 12.8070
+        },
+        "description": "Catalogo Triveneto (85 siti): Friuli-Venezia Giulia, Veneto, Trentino-Alto Adige, Carinzia, Slovenia e Costa Adriatica."
+    },
+    "lombardia_nord": {
+        "id": "lombardia_nord",
+        "name": "Lombardia Nord",
+        "catalog_id": "lombardia_nord",
+        "catalog_name": "Lombardia Nord (Laghi, Prealpi, Ticino, Valtellina)",
+        "default_origin": {
+            "name": "Como (CO)",
+            "lat": 45.8081,
+            "lon": 9.0852
+        },
+        "default_test": {
+            "name": "Colma di Sormano (Osservatorio)",
+            "lat": 45.8858,
+            "lon": 9.2276
+        },
+        "description": "Catalogo Lombardia Nord (69 siti): Comasco, Ticino (CH), Varesotto, Lecco, Valtellina, Colico, Bellagio, Arona, Verbania."
+    }
+}
+
+def get_profile(profile_id: str) -> Dict:
+    """Restituisce la configurazione del profilo territoriale specificato (default: triveneto)."""
+    return PROFILES.get(profile_id, PROFILES["triveneto"])
+
+def list_profiles() -> Dict[str, str]:
+    """Restituisce un dizionario {Label UI: ID Profilo} per il selettore dei profili."""
+    return {
+        "🌌 Triveneto (Default - Partenza Ghirano)": "triveneto",
+        "🏔️ Lombardia Nord (Partenza Como)": "lombardia_nord"
+    }
+
 def list_available_catalogs() -> Dict[str, str]:
     """Restituisce un dizionario {Nome Visualizzato: ID/File} dei cataloghi disponibili."""
     cdir = get_catalogs_dir()
     catalogs = {}
     if os.path.exists(cdir):
-        for f in os.listdir(cdir):
+        for f in sorted(os.listdir(cdir)):
             if f.endswith(".json"):
                 cat_id = f[:-5]
                 if cat_id.lower() == "nordest":
-                    cat_name = "NordEst (Triveneto, Carinzia, Slovenia)"
+                    cat_name = "Triveneto (NordEst, Carinzia, Slovenia)"
+                elif cat_id.lower() == "lombardia_nord":
+                    cat_name = "Lombardia Nord (Laghi, Prealpi, Ticino, Valtellina)"
                 else:
                     cat_name = cat_id.replace("_", " ").title()
                 catalogs[cat_name] = cat_id
     if not catalogs:
-        catalogs["NordEst (Triveneto, Carinzia, Slovenia)"] = "nordest"
+        catalogs["Triveneto (NordEst, Carinzia, Slovenia)"] = "nordest"
     return catalogs
 
 def load_catalog(cat_id: str = "nordest") -> List[Dict]:
@@ -125,8 +175,20 @@ def search_locations(query: str) -> List[Dict]:
     # 3. Ricerca nei cataloghi locali (Passi montani storici, cime, rifugi, siti astrofili)
     try:
         q_lower = q.lower()
-        catalog_sites = CURATED_SITES if CURATED_SITES else NORDEST_SITES
-        for s in catalog_sites:
+        all_sites_to_search = []
+        cdir = get_catalogs_dir()
+        if os.path.exists(cdir):
+            for fn in os.listdir(cdir):
+                if fn.endswith(".json"):
+                    try:
+                        with open(os.path.join(cdir, fn), "r", encoding="utf-8") as f_cat:
+                            all_sites_to_search.extend(json.load(f_cat))
+                    except Exception:
+                        pass
+        if not all_sites_to_search:
+            all_sites_to_search = NORDEST_SITES
+
+        for s in all_sites_to_search:
             s_name = s.get("name", "")
             s_reg = s.get("region", "")
             s_macro = s.get("macro_region", "")
@@ -137,7 +199,7 @@ def search_locations(query: str) -> List[Dict]:
 
     # 4. Photon API (Komoot OpenStreetMap) - eccellente per passi montani, valichi, cime, rifugi e paesi
     try:
-        p_url = f"https://photon.komoot.io/api/?q={requests.utils.quote(q)}&lat=46.2&lon=12.5&limit=7"
+        p_url = f"https://photon.komoot.io/api/?q={requests.utils.quote(q)}&lat=46.0&lon=10.5&limit=8"
         resp = requests.get(p_url, headers={"User-Agent": "SqmSearchApp/2.0"}, timeout=4)
         if resp.status_code == 200:
             for feat in resp.json().get("features", []):
@@ -302,16 +364,31 @@ def query_driving_route(lat1: float, lon1: float, lat2: float, lon2: float) -> D
 def calculate_routes_for_origin(origin_lat: float, origin_lon: float, origin_name: str = "", sites: Optional[List[Dict]] = None) -> List[Dict]:
     """
     Calcola istantaneamente i tempi di guida e le distanze da un punto di partenza per l'elenco dei siti.
-    - Se l'origine è Ghirano, restituisce i dati precalcolati in 0.0001s.
+    - Se l'origine corrisponde a quella precalcolata del catalogo (es. Ghirano per NordEst, Como per Lombardia Nord),
+      restituisce i dati memorizzati in 0.0001s.
     - Se l'origine cambia, usa l'OSRM Table Service in una singola richiesta HTTP (circa 0.3s).
     - In caso di assenza di connessione OSRM, scatta il fallback istantaneo geodetico montano.
     """
     if sites is None:
         sites = CURATED_SITES
 
-    is_ghirano = (abs(origin_lat - DEFAULT_ORIGIN["lat"]) < 0.01 and abs(origin_lon - DEFAULT_ORIGIN["lon"]) < 0.01)
+    if not sites:
+        return []
+
+    # Verifica se l'origine richiesta corrisponde a quella già precalcolata nei siti forniti
+    first_gmaps = sites[0].get("gmaps_url", "")
+    is_matching_precalculated = False
     
-    if is_ghirano:
+    if f"origin={origin_lat:.4f}" in first_gmaps or f"origin={origin_lat:.5f}" in first_gmaps:
+        is_matching_precalculated = True
+    elif (abs(origin_lat - 45.8617) < 0.01 and abs(origin_lon - 12.5539) < 0.01 and "12.5539" in first_gmaps):
+        # Ghirano di Prata (NordEst)
+        is_matching_precalculated = True
+    elif (abs(origin_lat - 45.8081) < 0.01 and abs(origin_lon - 9.0852) < 0.01 and "9.0852" in first_gmaps):
+        # Como (Lombardia Nord)
+        is_matching_precalculated = True
+
+    if is_matching_precalculated:
         results = [dict(s) for s in sites]
         results.sort(key=lambda x: x.get("duration_min", 999))
         return results
@@ -371,10 +448,10 @@ def evaluate_all_sites(origin: Optional[Dict] = None, min_sqm: float = 0.0) -> L
     return res
 
 
-def export_interactive_html(results: List[Dict], origin: Dict, output_path: str = "sqm_dark_sites_map.html"):
+def generate_interactive_html(results: List[Dict], origin: Dict, title: str = "Mappa Siti Astronomici Bui") -> str:
     """
-    Crea una mappa interattiva HTML moderna con Leaflet.js,
-    con marker colorati, popup dettagliati e link a Google Maps.
+    Crea il codice HTML completo per la mappa interattiva Leaflet.js
+    con card laterali, marker colorati per SQM, popup dettagliati e calcolo dinamico al click.
     """
     origin_json = json.dumps(origin)
     sites_json = json.dumps(results)
@@ -383,7 +460,7 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Mappa Siti Astronomici Bui (Triveneto, Carinzia, Slovenia)</title>
+    <title>{title}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -511,8 +588,8 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
 <body>
     <div id="header">
         <div>
-            <h1>Siti di Osservazione Astronomica (Triveneto, Carinzia, Slovenia)</h1>
-            <div class="subtitle">Partenza da Ghirano di Prata (PN) • Tempi reali stradali OSRM • Dati fotometrici LightPollutionMap 2025</div>
+            <h1>{title}</h1>
+            <div class="subtitle">Partenza attiva: <b>{origin.get('name', 'Punto di Partenza')}</b> • Tempi reali stradali OSRM • Dati fotometrici LightPollutionMap 2025</div>
         </div>
         <div style="font-size: 0.85rem; color: #10b981; font-weight: 600;">
             {len(results)} Localit&agrave; Disponibili
@@ -532,7 +609,7 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
         const origin = {origin_json};
         const sites = {sites_json};
 
-        const map = L.map('map').setView([46.4, 12.8], 8);
+        const map = L.map('map').setView([origin.lat, origin.lon], 9);
 
         const osm = L.tileLayer('https://tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
             attribution: '&copy; OpenStreetMap contributors',
@@ -563,10 +640,10 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
             iconSize: [16, 16],
             iconAnchor: [8, 8]
         }});
-        L.marker([origin.lat, origin.lon], {{icon: originIcon}}).addTo(map)
+        const originMarker = L.marker([origin.lat, origin.lon], {{icon: originIcon}}).addTo(map)
             .bindPopup(`<b>Punto di Partenza:</b><br>${{origin.name}}<br><small>Lat: ${{origin.lat}}, Lon: ${{origin.lon}}</small>`);
 
-        const markers = [];
+        const markers = [originMarker];
 
         function getMarkerColor(sqm) {{
             if (sqm >= 21.75) return '#047857';
@@ -755,6 +832,12 @@ def export_interactive_html(results: List[Dict], origin: Dict, output_path: str 
 </body>
 </html>
 """
+    return html_content
+
+
+def export_interactive_html(results: List[Dict], origin: Dict, output_path: str = "sqm_dark_sites_map.html", title: str = "Mappa Siti Astronomici Bui"):
+    """Esporta la mappa interattiva HTML su file."""
+    html_content = generate_interactive_html(results, origin, title)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
     print(f"Mappa interattiva generata con successo: {output_path}")

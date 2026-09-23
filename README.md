@@ -7,6 +7,8 @@ Uno strumento interattivo open-source per individuare e valutare i **migliori si
 🚀 **Applicazione Web Online:** [https://sqmsearch-eucsrbmdvsdt5tmgwfxg99.streamlit.app/](https://sqmsearch-eucsrbmdvsdt5tmgwfxg99.streamlit.app/)  
 Ottimizzata sia per l'uso da PC desktop che direttamente da smartphone sul campo.
 
+> 🔭 *Applicazione sviluppata in omaggio al gruppo astrofili [**Astrofili Ponte di Piave**](https://www.astrofilipontedipiave.it/).*
+
 ---
 
 ## 🧭 Il Problema della Ricerca "In Linea d'Aria"
@@ -22,36 +24,50 @@ I portali astronomici tradizionali e i visualizzatori di inquinamento luminoso o
 
 ## ✨ Funzionalità Principali
 
+* 🏢 **Profili Territoriali Preimpostati**:
+  * **Triveneto (Default)**: Partenza predefinita `Ghirano di Prata (PN)` e catalogo dedicato di 85 siti tra FVG, Veneto, Trentino-Alto Adige, Carinzia e Slovenia.
+  * **Lombardia Nord**: Partenza predefinita `Como (CO)` e catalogo dedicato di 69 siti tra Comasco, Lecco, Valsassina, Varesotto, Valtellina/Sondrio, Canton Ticino (CH), Verbano e Val d'Ossola.
 * 📍 **Punto di Partenza Personalizzabile**:
-  * Caricamento istantaneo predefinito con ricalcolo immediato all'apertura.
-  * Ricerca rapida per nome di qualsiasi città, comune o indirizzo (geocoding automatico con OpenStreetMap / Open-Meteo).
-  * Inserimento manuale di latitudine e longitudine GPS.
+  * Caricamento istantaneo precalcolato a 0.0s all'avvio.
+  * Ricerca potenziata multi-sorgente per nome: riconosce passi montani storici, rifugi, vette, comuni, coordinate GPS o link Google Maps.
+  * Inserimento manuale rapido di latitudine e longitudine GPS.
 * 🚗 **Routing Stradale Reale con OSRM**:
-  * Calcolo accurato di tempi di percorrenza e distanze chilometriche effettive su strada.
-  * Navigazione assistita: pulsante diretto per aprire l'itinerario in **Google Maps** e avviare il navigatore in auto.
+  * Calcolo istantaneo di tempi di percorrenza e distanze chilometriche effettive su strada.
+  * Navigazione assistita: clic diretto sul nome della località per aprire l'itinerario in **Google Maps** e avviare il navigatore.
 * 🌌 **Analisi Fotometrica e Qualità del Cielo**:
   * Interrogazione dei raster di *LightPollutionMap.info* (*Sky Brightness 2025* e *World Atlas 2015*).
   * Valore **SQM** (Sky Quality Meter in mag/arcsec²), stima della **Classe Bortle**, **NELM** (Naked Eye Limiting Magnitude) e quota sul livello del mare.
-* 🗺️ **Mappa Interattiva Leaflet con Click-to-Inspect**:
+* 🗺️ **Mappa Interattiva Leaflet Dinamica**:
+  * Mappa generata al volo e centrata sul profilo attivo.
   * Cliccando su **qualsiasi punto della mappa** viene interrogato all'istante il database fotometrico e tracciato l'itinerario in tempo reale dal punto di partenza selezionato.
-  * Selettore di layer cartografici 100% gratuiti: **Stradale (OpenStreetMap)**, **Rilievo Montano (Esri Topo)** e **Satellite (Esri Imagery)**.
+  * Selettore di layer cartografici: **Stradale (OpenStreetMap)**, **Rilievo Montano (Esri Topo)** e **Satellite (Esri Imagery)**.
 * 📋 **Classifica Ordinata per Tempo di Guida**:
-  * Visualizzazione immediata di tutti gli 81 siti del catalogo ordinati dal più vicino al più lontano in auto.
-  * Righe colorate ad alto contrasto (testo nero su sfumature pastello) in base alla qualità del cielo (SQM).
+  * Visualizzazione immediata di tutti i siti del catalogo ordinati dal più vicino al più lontano in auto.
+  * Righe colorate ad alto contrasto in base alla qualità del cielo (SQM).
 * 🔍 **Modalità Test Libero**:
-  * Possibilità di testare qualsiasi coordinata o toponimo nel mondo per verificarne istantaneamente SQM e itinerario stradale.
+  * Possibilità di testare qualsiasi coordinata o toponimo per verificarne istantaneamente SQM e itinerario stradale.
 
 ---
 
-## 🗺️ Aree Incluse nel Catalogo Predefinito
+## 🗺️ Aree & Cataloghi Inclusi
 
-Il database include oltre **80 siti con accesso veicolare verificato e aree di sosta**, distribuiti tra:
-* 🇮🇹 **Friuli-Venezia Giulia**: Carnia, Tarvisiano, Alpi e Prealpi Giulie, Dolomiti Friulane, Valli del Natisone.
-* 🇮🇹 **Veneto**: Dolomiti Bellunesi, Cadore, Altopiano di Asiago, Monte Grappa, Lessinia.
-* 🇮🇹 **Trentino-Alto Adige**: Val Badia, Val di Fassa, Val Sarentino, Val Venosta, passi dolomitici e valichi alpini d'alta quota.
-* 🇦🇹 **Carinzia (Austria)**: Alti Tauri, Nockberge, Drautal (inclusi siti rinomati a livello internazionale come Emberger Alm e Nockalmstraße).
+Il database include oltre **150 siti osservativi verificati con accesso veicolare e piazzali**, suddivisi nei cataloghi:
+
+### 1. Catalogo Triveneto (85 siti)
+* 🇮🇹 **Friuli-Venezia Giulia**: Carnia, Tarvisiano, Sella Nevea, Alpi e Prealpi Giulie, Meduno Startplatz, Dolomiti Friulane.
+* 🇮🇹 **Veneto**: Dolomiti Bellunesi, Monte Pizzoc/Cansiglio, Monte Avena, Cadore, Altopiano di Asiago, Monte Grappa, Lessinia.
+* 🇮🇹 **Trentino-Alto Adige**: Val Badia, Val di Fassa, Val Sarentino, Val Venosta, passi dolomitici d'alta quota.
+* 🇦🇹 **Carinzia (Austria)**: Alti Tauri, Nockberge, Sonnleitn/Nassfeld, Emberger Alm, Maltatal, Weissensee.
 * 🇸🇮 **Slovenia Occidentale**: Parco Nazionale del Triglav, Mangartsko sedlo, Passo del Vršič, Altopiano di Pokljuka.
-* 🌊 **Costa Adriatica & Lagune**: Oasi naturali e litorali a basso impatto luminoso (Valle Vecchia / Brussa, Sacca di Scardovari nel Delta del Po).
+* 🌊 **Costa Adriatica**: Valle Vecchia / Brussa, Sacca di Scardovari nel Delta del Po.
+
+### 2. Catalogo Lombardia Nord (69 siti)
+* 🇮🇹 **Comasco, Triangolo Lariano & Bellagio**: Colma di Sormano, Pian del Tivano, Monte San Primo, Sighignola (Balcone d'Italia), Rifugio Venini, Pigra, Alpe del Vicerè.
+* 🇮🇹 **Lecco, Valsassina & Grigne**: Alpe Giumello, Cainallo, Piani dei Resinelli, Culmine di San Pietro, Rifugio Roccoli Lorla (Colico), Piani di Bobbio.
+* 🇮🇹 **Varesotto & Verbano Orientale**: Campo dei Fiori (Schiaparelli), Passo Forcora, Passo del Cuvignone, Monte San Martino, Monte Sette Termini.
+* 🇮🇹 **Sondrio, Valtellina & Valchiavenna**: Passo San Marco, Predarossa, Val di Mello, Chiareggio, Campo Moro, Passo dello Spluga, Montespluga, Mortirolo, Foscagno, Cancano, Passo Gavia, Bernina.
+* 🇨🇭 **Canton Ticino**: Monte Lema, Passo San Gottardo, Passo San Bernardino, Lucomagno, Passo della Novena (Nufenenpass), Alpe di Neggia, Val Verzasca, Val Bavona.
+* 🇮🇹 **Arona, Verbano Occidentale, Cusio & Val d'Ossola**: Mottarone, Alpe Devero, Val Formazza (Riale), Passo del Sempione, Macugnaga, Alpe Colle (Val Grande).
 
 ---
 
@@ -88,9 +104,13 @@ streamlit run app.py
 
 ```
 SqmSearch/
-├── app.py                      # Applicazione web interattiva Streamlit
-├── sqm_analyzer.py             # Modulo di calcolo: API LightPollutionMap, OSRM Table Service
-├── sqm_dark_sites_map.html     # Mappa interattiva Leaflet standalone
+├── app.py                      # Applicazione web interattiva Streamlit (Profili, Classifica, Mappa)
+├── sqm_analyzer.py             # Motore di calcolo: API LPM, OSRM Table Service, Profili Territoriali
+├── catalogs/                   # Cataloghi astronomici JSON
+│   ├── nordest.json            # 85 siti Triveneto, Carinzia, Slovenia
+│   └── lombardia_nord.json     # 69 siti Comasco, Lecco, Varesotto, Valtellina, Ticino, Verbano
+├── assets/                     # Loghi e risorse grafiche (Astrofili Ponte di Piave)
+├── sqm_dark_sites_map.html     # Mappa interattiva Leaflet esportabile
 ├── requirements.txt            # Dipendenze Python (streamlit, pandas, requests)
 ├── avvia_sqm_search.bat        # Script di avvio rapido locale (Windows)
 ├── apri_mappa.bat              # Script per apertura diretta della mappa nel browser

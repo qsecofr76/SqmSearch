@@ -3,10 +3,14 @@ import pandas as pd
 import requests
 import time
 import math
+import os
 import base64
 from sqm_analyzer import (
     DEFAULT_ORIGIN,
     CURATED_SITES,
+    PROFILES,
+    get_profile,
+    list_profiles,
     generate_lpm_token,
     query_lpm_point,
     query_driving_route,
@@ -14,7 +18,8 @@ from sqm_analyzer import (
     evaluate_all_sites,
     search_locations,
     list_available_catalogs,
-    load_catalog
+    load_catalog,
+    generate_interactive_html
 )
 
 st.set_page_config(
@@ -23,40 +28,77 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🌌 Ricerca Siti Astronomici Bui (SQM & Tempi Auto)")
-st.markdown(
-    """
-    Questo strumento supera il limite della ricerca "in linea d'aria" di *LightPollutionMap*,
-    valutando l'**effettiva raggiungibilità in auto** (tempi di percorrenza e distanze reali su strada)
-    e i valori fotometrici **SQM / Bortle** aggiornati dai server di *LightPollutionMap.info*.  
-    Catalogo attivo: **NordEst** (Friuli-Venezia Giulia, Veneto, Trentino-Alto Adige, Carinzia, Slovenia e Costa Adriatica).
-    """
-)
+# 1. Inizializza session_state per il profilo territoriale (Triveneto predefinito all'avvio)
+if "active_profile" not in st.session_state:
+    st.session_state.active_profile = "triveneto"
 
-# 1. Inizializza session_state per il punto di partenza: Ghirano predefinito lanciato subito
+active_prof = get_profile(st.session_state.active_profile)
+
 if "origin_name" not in st.session_state:
-    st.session_state.origin_name = DEFAULT_ORIGIN["name"]
+    st.session_state.origin_name = active_prof["default_origin"]["name"]
 if "origin_lat" not in st.session_state:
-    st.session_state.origin_lat = DEFAULT_ORIGIN["lat"]
+    st.session_state.origin_lat = active_prof["default_origin"]["lat"]
 if "origin_lon" not in st.session_state:
-    st.session_state.origin_lon = DEFAULT_ORIGIN["lon"]
+    st.session_state.origin_lon = active_prof["default_origin"]["lon"]
 
 # Inizializza session_state per il punto personalizzato di test
 if "test_lat" not in st.session_state:
-    st.session_state.test_lat = 46.2314
+    st.session_state.test_lat = active_prof["default_test"]["lat"]
 if "test_lon" not in st.session_state:
-    st.session_state.test_lon = 12.8070
+    st.session_state.test_lon = active_prof["default_test"]["lon"]
 if "test_name" not in st.session_state:
-    st.session_state.test_name = "Monte Valinis / Meduno Startplatz"
+    st.session_state.test_name = active_prof["default_test"]["name"]
+
+if "cat_id" not in st.session_state:
+    st.session_state.cat_id = active_prof["catalog_id"]
+
+st.title("🌌 Ricerca Siti Astronomici Bui (SQM & Tempi Auto)")
+st.caption("✨ Applicazione sviluppata in omaggio al gruppo astrofili [**Astrofili Ponte di Piave**](https://www.astrofilipontedipiave.it/)")
+
+st.markdown(
+    f"""
+    Questo strumento supera il limite della ricerca "in linea d'aria" di *LightPollutionMap*,
+    valutando l'**effettiva raggiungibilità in auto** (tempi di percorrenza e distanze reali su strada)
+    e i valori fotometrici **SQM / Bortle** aggiornati dai server di *LightPollutionMap.info*.  
+    Profilo attivo: **{active_prof['name']}** — {active_prof['description']}
+    """
+)
 
 # ----------------- SIDEBAR -----------------
+st.sidebar.header("🏢 Profilo Territoriale")
+profile_options = list_profiles()
+prof_labels = list(profile_options.keys())
+current_prof_label = next((lbl for lbl, pid in profile_options.items() if pid == st.session_state.active_profile), prof_labels[0])
+
+selected_profile_label = st.sidebar.selectbox(
+    "Area di riferimento:",
+    options=prof_labels,
+    index=prof_labels.index(current_prof_label),
+    help="Passa istantaneamente da un'area territoriale all'altra impostando partenza e catalogo dedicati.",
+    key="profile_selector"
+)
+chosen_prof_id = profile_options[selected_profile_label]
+if chosen_prof_id != st.session_state.active_profile:
+    st.session_state.active_profile = chosen_prof_id
+    new_prof = get_profile(chosen_prof_id)
+    st.session_state.origin_name = new_prof["default_origin"]["name"]
+    st.session_state.origin_lat = new_prof["default_origin"]["lat"]
+    st.session_state.origin_lon = new_prof["default_origin"]["lon"]
+    st.session_state.test_name = new_prof["default_test"]["name"]
+    st.session_state.test_lat = new_prof["default_test"]["lat"]
+    st.session_state.test_lon = new_prof["default_test"]["lon"]
+    st.session_state.cat_id = new_prof["catalog_id"]
+    st.rerun()
+
+active_prof = get_profile(st.session_state.active_profile)
+
 st.sidebar.header("📍 Punto di Partenza")
 
 # Barra di ricerca automatica della località di partenza
 search_query = st.sidebar.text_input(
     "🔍 Cerca Partenza",
     placeholder="Città, Passo, Vetta, link Maps o GPS...",
-    help="Puoi digitare città, comuni, passi alpini (es. Passo Pramollo, Passo Giau), vette, rifugi, incollare un link Google Maps o coordinate GPS.",
+    help="Puoi digitare città, comuni, passi alpini, vette, rifugi, incollare un link Google Maps o coordinate GPS.",
     key="origin_search_input"
 )
 
@@ -88,12 +130,13 @@ if search_query:
 st.sidebar.markdown(f"**Partenza attiva:**  \n📍 `{st.session_state.origin_name}`")
 st.sidebar.caption(f"Coordinate: `{st.session_state.origin_lat:.4f}, {st.session_state.origin_lon:.4f}`")
 
-# Pulsante di ripristino rapido a Ghirano se diverso
-if st.session_state.origin_name != DEFAULT_ORIGIN["name"]:
-    if st.sidebar.button("🔄 Ripristina Ghirano di Prata", width="stretch"):
-        st.session_state.origin_name = DEFAULT_ORIGIN["name"]
-        st.session_state.origin_lat = DEFAULT_ORIGIN["lat"]
-        st.session_state.origin_lon = DEFAULT_ORIGIN["lon"]
+# Pulsante di ripristino rapido alla partenza predefinita del profilo attivo
+default_origin_name = active_prof["default_origin"]["name"]
+if st.session_state.origin_name != default_origin_name:
+    if st.sidebar.button(f"🔄 Ripristina {default_origin_name}", width="stretch"):
+        st.session_state.origin_name = active_prof["default_origin"]["name"]
+        st.session_state.origin_lat = active_prof["default_origin"]["lat"]
+        st.session_state.origin_lon = active_prof["default_origin"]["lon"]
         st.rerun()
 
 with st.sidebar.expander("🛠️ Modifica coordinate a mano"):
@@ -109,13 +152,36 @@ with st.sidebar.expander("🛠️ Modifica coordinate a mano"):
 
 st.sidebar.header("📚 Catalogo Aree")
 available_catalogs = list_available_catalogs()
+cat_names = list(available_catalogs.keys())
+current_cat_name = next((name for name, cid in available_catalogs.items() if cid == st.session_state.cat_id), cat_names[0])
+
 selected_catalog_name = st.sidebar.selectbox(
-    "Catalogo attivo:",
-    options=list(available_catalogs.keys()),
-    index=0
+    "Catalogo visualizzato:",
+    options=cat_names,
+    index=cat_names.index(current_cat_name),
+    key="catalog_selector"
 )
-cat_id = available_catalogs[selected_catalog_name]
-st.sidebar.caption("I cataloghi sono archiviati in `catalogs/*.json`. È possibile aggiungere facilmente nuove aree (es. Lombardia, Centro Italia).")
+st.session_state.cat_id = available_catalogs[selected_catalog_name]
+cat_id = st.session_state.cat_id
+
+# Tributo Astrofili Ponte di Piave nel footer della sidebar
+st.sidebar.divider()
+logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo_astrofili_ponte_di_piave.png")
+col_logo, col_tribute = st.sidebar.columns([1, 3])
+with col_logo:
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=54)
+with col_tribute:
+    st.markdown(
+        """
+        <div style="font-size: 0.78rem; line-height: 1.35; color: #9ca3af;">
+            Dedicato con stima agli<br>
+            <b style="color: #60a5fa;"><a href="https://www.astrofilipontedipiave.it/" target="_blank" style="color: #60a5fa; text-decoration: none;">Astrofili Ponte di Piave</a></b><br>
+            <span style="font-size: 0.72rem; color: #6b7280;">Ponte di Piave (TV)</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # ----------------- CARICAMENTO DATI SITI (ISTANTANEO) -----------------
 @st.cache_data(ttl=3600)
@@ -257,13 +323,16 @@ with tab_test_point:
 with tab_map_view:
     st.subheader("🗺️ Mappa Interattiva dei Siti")
     st.info("💡 **Clicca sulla mappa:** Clicca in **qualsiasi punto** per calcolare all'istante l'SQM e tracciare l'itinerario in auto con tempi e distanze da " + st.session_state.origin_name + "!")
-    st.write("La mappa include tutte le 85 località del catalogo NordEst (con Monte Valinis, Monte Pizzoc, Monte Avena, Sonnleitn e tutti i passi storici).")
+    st.write(f"La mappa visualizza tutti i **{len(sites_data)}** siti astronomici censiti nel catalogo **{selected_catalog_name}**.")
     try:
-        with open("sqm_dark_sites_map.html", "r", encoding="utf-8") as f:
-            map_html = f.read()
+        map_html = generate_interactive_html(
+            sites_data,
+            {"name": st.session_state.origin_name, "lat": st.session_state.origin_lat, "lon": st.session_state.origin_lon},
+            title=f"Mappa Siti Astronomici - {selected_catalog_name}"
+        )
         if hasattr(st, "iframe"):
-            st.iframe(map_html, height=720, width="stretch")
+            st.iframe(map_html, height=750, width="stretch")
         else:
-            st.components.v1.html(map_html, height=720, scrolling=True)
+            st.components.v1.html(map_html, height=750, scrolling=True)
     except Exception as e:
-        st.error(f"Impossibile caricare la mappa: {e}")
+        st.error(f"Impossibile generare la mappa: {e}")
