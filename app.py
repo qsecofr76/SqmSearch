@@ -88,6 +88,9 @@ if chosen_prof_id != st.session_state.active_profile:
     st.session_state.test_lat = new_prof["default_test"]["lat"]
     st.session_state.test_lon = new_prof["default_test"]["lon"]
     st.session_state.cat_id = new_prof["catalog_id"]
+    for k in ["catalog_selector", "origin_select_box", "origin_search_input"]:
+        if k in st.session_state:
+            del st.session_state[k]
     st.rerun()
 
 active_prof = get_profile(st.session_state.active_profile)
@@ -150,19 +153,11 @@ with st.sidebar.expander("🛠️ Modifica coordinate a mano"):
             st.session_state.origin_lon = manual_lon
             st.rerun()
 
-st.sidebar.header("📚 Catalogo Aree")
-available_catalogs = list_available_catalogs()
-cat_names = list(available_catalogs.keys())
-current_cat_name = next((name for name, cid in available_catalogs.items() if cid == st.session_state.cat_id), cat_names[0])
-
-selected_catalog_name = st.sidebar.selectbox(
-    "Catalogo visualizzato:",
-    options=cat_names,
-    index=cat_names.index(current_cat_name),
-    key="catalog_selector"
-)
-st.session_state.cat_id = available_catalogs[selected_catalog_name]
-cat_id = st.session_state.cat_id
+st.sidebar.header("📚 Catalogo Attivo")
+cat_id = active_prof["catalog_id"]
+selected_catalog_name = active_prof["catalog_name"]
+st.sidebar.markdown(f"📍 **{selected_catalog_name}**")
+st.sidebar.caption(f"Catalogo astronomico attivo per il profilo **{active_prof['name']}**.")
 
 # Tributo Astrofili Ponte di Piave nel footer della sidebar
 st.sidebar.divider()
