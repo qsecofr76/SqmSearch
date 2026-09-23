@@ -53,7 +53,7 @@ if "cat_id" not in st.session_state:
     st.session_state.cat_id = active_prof["catalog_id"]
 
 st.title("🌌 Ricerca Siti Astronomici Bui (SQM & Tempi Auto)")
-st.caption("✨ Dedicato con stima agli [**Astrofili Ponte di Piave**](https://www.astrofilipontedipiave.it/) Ponte di Piave (TV). Scritto da **R.D.M** - [Astrofili Ponte di Piave](https://www.astrofilipontedipiave.it/).")
+st.caption("Scritto da **R.D.M.** — [**Astrofili Ponte di Piave**](https://www.astrofilipontedipiave.it/)")
 
 st.markdown(
     f"""
@@ -169,11 +169,9 @@ with col_logo:
 with col_tribute:
     st.markdown(
         """
-        <div style="font-size: 0.78rem; line-height: 1.35; color: #9ca3af;">
-            Dedicato con stima agli<br>
-            <b style="color: #60a5fa;"><a href="https://www.astrofilipontedipiave.it/" target="_blank" style="color: #60a5fa; text-decoration: none;">Astrofili Ponte di Piave</a></b><br>
-            <span style="font-size: 0.72rem; color: #6b7280;">Ponte di Piave (TV)</span><br>
-            <div style="margin-top: 4px; font-size: 0.72rem; color: #9ca3af;">Scritto da <b>R.D.M</b> - <a href="https://www.astrofilipontedipiave.it/" target="_blank" style="color: #60a5fa; text-decoration: none;">Astrofili Ponte di Piave</a></div>
+        <div style="font-size: 0.82rem; line-height: 1.45; color: #d1d5db; padding-top: 4px;">
+            Scritto da <b>R.D.M.</b><br>
+            <b style="color: #60a5fa;"><a href="https://www.astrofilipontedipiave.it/" target="_blank" style="color: #60a5fa; text-decoration: none;">Astrofili Ponte di Piave</a></b>
         </div>
         """,
         unsafe_allow_html=True
@@ -333,13 +331,4 @@ with tab_map_view:
     except Exception as e:
         st.error(f"Impossibile generare la mappa: {e}")
 
-st.divider()
-st.markdown(
-    """
-    <div style="text-align: center; font-size: 0.85rem; color: #6b7280; padding: 8px 0;">
-        Dedicato con stima agli <a href="https://www.astrofilipontedipiave.it/" target="_blank" style="color: #60a5fa; text-decoration: none; font-weight: 600;">Astrofili Ponte di Piave</a> — Ponte di Piave (TV).<br>
-        Scritto da <b>R.D.M</b> - <a href="https://www.astrofilipontedipiave.it/" target="_blank" style="color: #60a5fa; text-decoration: none;">Astrofili Ponte di Piave</a>.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+

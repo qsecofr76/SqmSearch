@@ -7,8 +7,7 @@ Uno strumento interattivo open-source per individuare e valutare i **migliori si
 🚀 **Applicazione Web Online:** [https://sqmsearch-eucsrbmdvsdt5tmgwfxg99.streamlit.app/](https://sqmsearch-eucsrbmdvsdt5tmgwfxg99.streamlit.app/)  
 Ottimizzata sia per l'uso da PC desktop che direttamente da smartphone sul campo.
 
-> 🔭 *Dedicato con stima agli [**Astrofili Ponte di Piave**](https://www.astrofilipontedipiave.it/) Ponte di Piave (TV).*  
-> *Scritto da **R.D.M** - [Astrofili Ponte di Piave](https://www.astrofilipontedipiave.it/).*
+> 🔭 *Scritto da **R.D.M.** — [**Astrofili Ponte di Piave**](https://www.astrofilipontedipiave.it/).*
 
 ---
 
